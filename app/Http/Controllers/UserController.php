@@ -93,7 +93,7 @@ class UserController extends Controller
         $user->ruangan = $request->ruangan;
         $user->save();
 
-        return redirect()->route('user.index')->with('success', 'User updated successfully.');
+        return redirect()->route('user.index')->with('success', '');
     }
 
     /**

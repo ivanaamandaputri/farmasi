@@ -59,7 +59,9 @@
                     <option value="puskesmas Bandung">puskesmas Bandung</option>
                 </select>
             </div>
-            <button type="submit" class="btn btn-success">Simpan</button>
+            <br>
+            <button type="submit" class="btn btn-primary">Simpan</button>
+            <a href="{{ route('transaksi.index') }}" class="btn btn-secondary">Batal</a>
         </form>
     </div>
 @endsection

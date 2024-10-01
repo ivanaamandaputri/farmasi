@@ -67,7 +67,9 @@
                         puskesmas Bandung</option>
                 </select>
             </div>
-            <button type="submit" class="btn btn-success">Update</button>
+            <br>
+            <button type="submit" class="btn btn-success">Simpan Perubahan</button>
+            <a href="{{ route('transaksi.index') }}" class="btn btn-secondary">Batal</a>
         </form>
     </div>
 @endsection

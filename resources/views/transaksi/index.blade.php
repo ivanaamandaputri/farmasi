@@ -6,8 +6,15 @@
             <h4 class="card-title">Data Transaksi</h4>
             <a href="{{ route('transaksi.create') }}" class="btn btn-primary mb-3">Tambah Transaksi</a>
         </div>
+
+        @if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
+
         <div class="table-responsive">
-            <table class="table-striped table-hover table">
+            <table class="display table-striped table-hover table">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -25,12 +32,12 @@
                     @foreach ($transaksi as $item)
                         <tr>
                             <td>{{ $item->id }}</td>
-                            <td>{{ $item->nama_obat }}</td>
+                            <td>{{ $item->obat->nama_obat }}</td>
                             <td>{{ $item->dosis }}</td>
                             <td>{{ $item->jenis }}</td>
                             <td>{{ $item->jumlah }}</td>
                             <td>{{ number_format($item->harga, 2, ',', '.') }}</td> <!-- Format harga -->
-                            <td>{{ $item->nama_pemesan }}</td>
+                            <td>{{ $item->user->nama_pegawai }}</td> <!-- Menggunakan relasi user untuk nama pemesan -->
                             <td>{{ $item->ruangan }}</td>
                             <td>
                                 <a href="{{ route('transaksi.edit', $item->id) }}" class="btn btn-warning">Edit</a>

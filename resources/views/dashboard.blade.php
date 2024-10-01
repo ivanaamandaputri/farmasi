@@ -13,7 +13,7 @@
                     <div class="h5 font-weight-bold mb-0">{{ $jumlahObat }}</div>
                 </div>
                 <div class="card-footer d-flex align-items-center justify-content-between">
-                    <a class="small stretched-link text-white" href="">Lihat Detail</a>
+                    <a class="small stretched-link text-white" href="/obat">Lihat Detail</a>
                     <div class="small text-white"><i class="fas fa-angle-right"></i></div>
                 </div>
             </div>
@@ -30,7 +30,7 @@
                     <div class="h5 font-weight-bold mb-0">{{ $jumlahUser }}</div>
                 </div>
                 <div class="card-footer d-flex align-items-center justify-content-between">
-                    <a class="small stretched-link text-white" href="#">Lihat Detail</a>
+                    <a class="small stretched-link text-white" href="/user">Lihat Detail</a>
                     <div class="small text-white"><i class="fas fa-angle-right"></i></div>
                 </div>
             </div>
@@ -47,10 +47,9 @@
                     <div class="h5 font-weight-bold mb-0">{{ $jumlahTransaksi }}</div>
                 </div>
                 <div class="card-footer d-flex align-items-center justify-content-between">
-                    <a class="small stretched-link text-white" href="#">Lihat Detail</a>
+                    <a class="small stretched-link text-white" href="/laporan">Lihat Detail</a>
                     <div class="small text-white"><i class="fas fa-angle-right"></i></div>
                 </div>
             </div>
         </div>
-    </div>
-@endsection
+    @endsection

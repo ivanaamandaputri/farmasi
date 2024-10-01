@@ -67,8 +67,9 @@
                         <input type="password" name="password" class="form-control"
                             placeholder="Kosongkan jika tidak ingin mengganti password">
                     </div>
+                    <br>
                     <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                    <a href="{{ route('user.index') }}" class="btn btn-secondary btn-sm btn-border">Batal</a>
+                    <a href="{{ route('user.index') }}" class="btn btn-secondary">Batal</a>
                 </form>
             </div>
         </div>

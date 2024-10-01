@@ -35,8 +35,9 @@
                         <label for="harga">Harga</label>
                         <input type="number" name="harga" class="form-control" value="{{ $obat->harga }}" required>
                     </div>
+                    <br>
                     <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                    <a href="{{ route('transaksi.index') }}" class="btn btn-secondary">Kembali</a>
+                    <a href="{{ route('transaksi.index') }}" class="btn btn-secondary">Batal</a>
                 </form>
             </div>
         </div>

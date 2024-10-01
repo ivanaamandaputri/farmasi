@@ -49,6 +49,7 @@
                         <label for="password">Password</label>
                         <input type="password" name="password" class="form-control" required>
                     </div>
+                    <br>
                     <button type="submit" class="btn btn-primary">Simpan</button>
                     <a href="{{ route('user.index') }}" class="btn btn-secondary">Batal</a>
                 </form>

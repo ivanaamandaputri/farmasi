@@ -30,17 +30,31 @@
         <!-- Sidebar Toggle-->
         <button class="btn btn-link btn-sm order-lg-0 me-lg-0 order-1 me-4" id="sidebarToggle" href="#!"><i
                 class="fas fa-bars"></i></button>
-        <!-- Navbar-->
+        <!-- Navbar -->
         <ul class="navbar-nav ms-auto">
             <ul class="navbar-nav ms-md-0 me-lg-4 me-3 ms-auto">
-                <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button"
-                    data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                    <li><a class="dropdown-item" href="#!">Data Diri</a></li>
-                    <li><a class="dropdown-item" href="#!">Keluar</a></li>
-                </ul>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-user fa-fw"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                        <li>
+                            <a class="dropdown-item" href="#"
+                                onclick="event.preventDefault(); if(confirm('Apakah Anda yakin ingin keluar?')) { document.getElementById('logout-form').submit(); }">
+                                Keluar
+                            </a>
+                        </li>
+                    </ul>
                 </li>
             </ul>
+        </ul>
+
+        <!-- Form Logout -->
+        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+            @csrf
+        </form>
+
     </nav>
     <div id="layoutSidenav">
         <div id="layoutSidenav_nav">
