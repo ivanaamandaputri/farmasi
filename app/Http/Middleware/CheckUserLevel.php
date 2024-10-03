@@ -14,7 +14,8 @@ class CheckUserLevel
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle($request, Closure $next, ...$levels)
+
+    public function handle(Request $request, Closure $next, ...$levels)
     {
         // Memastikan pengguna sudah login
         if (!Auth::check()) {

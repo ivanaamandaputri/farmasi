@@ -39,7 +39,7 @@ class User extends Authenticatable
 
     public function setPasswordAttribute($value)
     {
-        $this->attributes['password'] = bcrypt($value); // Enkripsi password
+        $this->attributes['password'] = ($value); 
     }
 
     public function transaksi()

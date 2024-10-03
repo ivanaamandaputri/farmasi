@@ -42,6 +42,8 @@ Route::middleware(['auth', 'check.level:admin'])->group(function () {
 
 // Rute untuk operator
 Route::middleware(['auth', 'check.level:operator,admin'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard.index'); // Admin Dashboard
+    Route::get('/dashboard/operator', [DashboardController::class, 'index'])->name('dashboard.operator'); // Operator Dashboard
     Route::resource('transaksi', TransaksiController::class);
     Route::get('/transaksi/{id}/print', [TransaksiController::class, 'print'])->name('transaksi.print');
 });

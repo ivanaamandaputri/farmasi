@@ -100,15 +100,25 @@
 
                 <!-- Menu Transaksi untuk Operator -->
                 @if (Auth::user()->level == 'operator')
-                    <a class="nav-link{{ request()->is('transaksi') ? 'active' : '' }}" href="/transaksi">
+                    <a class="nav-link {{ request()->is('obat') ? 'active' : '' }}"
+                        href="{{ route('dashboard.index') }}">
+                        <div class="sb-nav-link-icon"><i class="fas fa-pills"></i></div>
+                        Data Obat
+                    </a>
+                    <a class="nav-link {{ request()->is('transaksi') ? 'active' : '' }}" href="/transaksi">
                         <div class="sb-nav-link-icon"><i class="fas fa-shopping-cart"></i></div>
                         Pesan Obat
+                    </a>
+                    <a class="nav-link" href="#"
+                        onclick="event.preventDefault(); if(confirm('Apakah Anda yakin ingin keluar?')) { document.getElementById('logout-form').submit(); }">
+                        <div class="sb-nav-link-icon"><i class="fas fa-sign-out-alt"></i></div>
+                        Keluar
                     </a>
                 @endif
 
                 <div class="sb-sidenav-footer">
                     <div class="small">Masuk Sebagai</div>
-                    Admin
+                    <span class="fw-bold" style="font-size: 20px">{{ Auth::user()->level }}</span>
                 </div>
             </nav>
         </div>
@@ -130,7 +140,7 @@
             <footer class="bg-light mt-auto py-4">
                 <div class="container-fluid px-4">
                     <div class="d-flex align-items-center justify-content-between small">
-                        <div class="text-muted">Copyright &copy; Your Website 2021</div>
+                        <div class="text-muted">Copyright &copy; Umpeg Dinkes 2024</div>
                     </div>
                 </div>
             </footer>

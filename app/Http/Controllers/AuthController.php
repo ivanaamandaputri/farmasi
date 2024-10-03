@@ -18,20 +18,20 @@ class AuthController extends Controller
     {
         // Validasi input
         $credentials = $request->validate([
-            'nip' => ['required', 'string'], // Ubah 'username' menjadi 'nip'
+            'nip' => ['required', 'string'],
             'password' => ['required', 'string'],
         ]);
 
-        // Cek kredensial menggunakan Auth
+        // Coba untuk login
         if (Auth::attempt($credentials)) {
-            // Jika login berhasil, redirect ke halaman dashboard
-            $request->session()->regenerate();
-            return redirect()->intended('/dashboard')->with('success', 'Login berhasil!');
+            // Redirect sesuai level user
+            return redirect()->route(Auth::user()->level == 'admin' ? 'dashboard.index' : 'dashboard.operator')
+                ->with('success', 'Login berhasil!'); // Tambahkan pesan sukses
         }
 
-        // Jika login gagal, kembalikan ke halaman login dengan error
+        // Jika login gagal
         return back()->withErrors([
-            'nip' => 'NIP atau password salah.', // Ubah 'username' menjadi 'NIP'
+            'nip' => 'NIP atau password salah.',
         ])->onlyInput('nip');
     }
 

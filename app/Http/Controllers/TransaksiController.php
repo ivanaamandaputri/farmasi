@@ -7,6 +7,7 @@ use App\Models\Obat;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
 
 class TransaksiController extends Controller
 {
@@ -28,25 +29,30 @@ class TransaksiController extends Controller
     // Menyimpan data transaksi baru
     public function store(Request $request)
     {
-        // Validasi data
+        // Validasi data tanpa 'nama_pemesan'
         $request->validate([
             'nama_obat' => 'required|string',
             'dosis' => 'required|string',
             'jenis' => 'required|in:tablet,kapsul,botol,dus',
             'jumlah' => 'required|integer|min:1',
             'harga' => 'required|numeric|min:0',
-            'nama_pemesan' => 'required|string',
             'ruangan' => 'required|in:Instalasi Farmasi,puskesmas Kaligangsa,puskesmas Margadana,puskesmas Tegal Barat,puskesmas Debong Lor,puskesmas Tegal Timur,puskesmas Slerok,puskesmas Tegal Selatan,puskesmas Bandung',
-
         ]);
 
-        // Menyimpan data transaksi
-        Transaksi::create($request->all());
+        // Menyimpan data transaksi, ambil nama pemesan dari pengguna yang sedang login
+        Transaksi::create([
+            'nama_obat' => $request->nama_obat,
+            'dosis' => $request->dosis,
+            'jenis' => $request->jenis,
+            'jumlah' => $request->jumlah,
+            'harga' => $request->harga,
+            'nama_pemesan' => Auth::user()->nama_pegawai, // Ambil nama pegawai yang login
+            'ruangan' => $request->ruangan,
+        ]);
 
         // Redirect ke halaman index dengan pesan sukses
         return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil ditambahkan');
     }
-
 
     // Menampilkan form untuk mengedit data transaksi
     public function edit(Transaksi $transaksi)
@@ -81,6 +87,15 @@ class TransaksiController extends Controller
         $transaksi->delete();
 
         return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil dihapus.');
+    }
+
+    public function laporan()
+    {
+        // Mengambil semua data transaksi dari database
+        $laporanTransaksi = Transaksi::all(); // Anda bisa menggunakan query lain sesuai kebutuhan
+
+        // Mengirim data ke tampilan
+        return view('laporan', compact('laporanTransaksi')); // 'laporan' adalah nama file tampilan
     }
 
     // Mencetak transaksi

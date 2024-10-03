@@ -15,6 +15,7 @@
                     <div class="form-group">
                         <label for="nama_pegawai">Nama Pegawai</label>
                         <input type="text" name="nama_pegawai" class="form-control" required>
+
                     </div>
                     <div class="form-group">
                         <label for="jabatan">Jabatan</label>
