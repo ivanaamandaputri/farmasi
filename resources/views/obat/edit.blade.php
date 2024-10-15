@@ -7,6 +7,16 @@
                 <h4>Edit Obat</h4>
             </div>
             <div class="card-body">
+                @if ($errors->any())
+                    <div class="alert alert-danger">
+
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+
+                    </div>
+                @endif
+
                 <form action="{{ route('obat.update', $obat->id) }}" method="POST">
                     @csrf
                     @method('PUT')
@@ -22,22 +32,21 @@
                         <label for="jenis">Jenis</label>
                         <select name="jenis" class="form-control" required>
                             <option value="tablet" {{ $obat->jenis == 'tablet' ? 'selected' : '' }}>Tablet</option>
-                            <option value="kapsul" {{ $obat->jenis == 'kapsul' ? 'selected' : '' }}>Kapsul</option>
                             <option value="botol" {{ $obat->jenis == 'botol' ? 'selected' : '' }}>Botol</option>
                             <option value="dus" {{ $obat->jenis == 'dus' ? 'selected' : '' }}>Dus</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="jumlah">Jumlah</label>
-                        <input type="number" name="jumlah" class="form-control" value="{{ $obat->jumlah }}" required>
-                    </div>
-                    <div class="form-group">
                         <label for="harga">Harga</label>
                         <input type="number" name="harga" class="form-control" value="{{ $obat->harga }}" required>
                     </div>
+                    <div class="form-group">
+                        <label for="stok">Stok</label>
+                        <input type="number" name="stok" class="form-control" value="{{ $obat->stok }}" required>
+                    </div>
                     <br>
                     <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                    <a href="{{ route('transaksi.index') }}" class="btn btn-secondary">Batal</a>
+                    <a href="{{ route('obat.index') }}" class="btn btn-secondary">Batal</a>
                 </form>
             </div>
         </div>

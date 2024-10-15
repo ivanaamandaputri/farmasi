@@ -13,25 +13,11 @@ return new class extends Migration
     {
         Schema::create('transaksi', function (Blueprint $table) {
             $table->id();
-            $table->string('nama_obat');
-            $table->string('dosis');
-            $table->enum('jenis', ['tablet', 'kapsul', 'botol', 'dus']);
-            $table->integer('jumlah');
-            $table->double('harga');
-            $table->string('nama_pemesan');
-            $table->enum('ruangan', [
-                'Instalasi Farmasi',
-                'puskesmas Kaligangsa',
-                'puskesmas Margadana',
-                'puskesmas Tegal Barat',
-                'puskesmas Debong Lor',
-                'puskesmas Tegal Timur',
-                'puskesmas Slerok',
-                'puskesmas Tegal Selatan',
-                'puskesmas Bandung'
-            ]);
             $table->unsignedBigInteger('obat_id');
             $table->unsignedBigInteger('user_id');
+            $table->integer('jumlah');
+            $table->integer('total');
+            $table->string('status')->default('Pengajuan');
             $table->foreign('obat_id')->references('id')->on('obat');
             $table->foreign('user_id')->references('id')->on('user');
             $table->timestamps();

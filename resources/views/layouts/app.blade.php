@@ -9,8 +9,15 @@
     <meta name="author" content="" />
     <title>Dashboard SI Farmasi</title>
     <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" />
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ asset('backend/dist/css/styles.css') }}" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/rowgroup/1.1.3/css/rowGroup.dataTables.min.css">
+    <script src="https://cdn.datatables.net/rowgroup/1.1.3/js/dataTables.rowGroup.min.js"></script>
+
     <style>
         .custom-card {
             background-color: #f8f9fa;
@@ -78,13 +85,14 @@
                                 <div class="sb-nav-link-icon"><i class="fas fa-pills"></i></div>
                                 Data Obat
                             </a>
-                            <a class="nav-link {{ request()->is('transaksi') ? 'active' : '' }}" href="/transaksi">
+                            <a class="nav-link {{ request()->is('pengajuan/order') ? 'active' : '' }}"
+                                href="{{ route('pengajuan.order') }}">
                                 <div class="sb-nav-link-icon"><i class="fas fa-shopping-cart"></i></div>
-                                Pesan Obat
+                                Order Masuk
                             </a>
                             <a class="nav-link {{ request()->is('laporan') ? 'active' : '' }}" href="/laporan">
-                                <div class="sb-nav-link-icon"><i class="fas fa-file-alt"></i></div>
-                                Laporan Pemesanan
+                                <div class="sb-nav-link-icon"><i class="fas fa-pills"></i></div>
+                                Laporan Order
                             </a>
                             <a class="nav-link" href="#"
                                 onclick="event.preventDefault(); if(confirm('Apakah Anda yakin ingin keluar?')) { document.getElementById('logout-form').submit(); }">
@@ -100,14 +108,13 @@
 
                 <!-- Menu Transaksi untuk Operator -->
                 @if (Auth::user()->level == 'operator')
-                    <a class="nav-link {{ request()->is('obat') ? 'active' : '' }}"
-                        href="{{ route('dashboard.index') }}">
+                    <a class="nav-link {{ request()->is('obat') ? 'active' : '' }}" href="{{ route('obat.index') }}">
                         <div class="sb-nav-link-icon"><i class="fas fa-pills"></i></div>
                         Data Obat
                     </a>
                     <a class="nav-link {{ request()->is('transaksi') ? 'active' : '' }}" href="/transaksi">
                         <div class="sb-nav-link-icon"><i class="fas fa-shopping-cart"></i></div>
-                        Pesan Obat
+                        Order Obat
                     </a>
                     <a class="nav-link" href="#"
                         onclick="event.preventDefault(); if(confirm('Apakah Anda yakin ingin keluar?')) { document.getElementById('logout-form').submit(); }">
@@ -125,17 +132,9 @@
         <div id="layoutSidenav_content">
             <main>
                 <div class="container-fluid px-4">
-                    <h1 class="mt-4">Dashboard</h1>
-                    <ol class="breadcrumb mb-4">
-                        <span class="profile-username">
-                            <span class="op-7" style="font-size: 18px">Hi,</span>
-                            <span class="fw-bold" style="font-size: 20px">{{ Auth::user()->level }}</span>
-                        </span>
-                    </ol>
+                    <br>
                     @yield('content')
                 </div>
-
-
             </main>
             <footer class="bg-light mt-auto py-4">
                 <div class="container-fluid px-4">
@@ -146,6 +145,18 @@
             </footer>
         </div>
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let alert = document.querySelector('.alert');
+            if (alert) {
+                setTimeout(() => {
+                    alert.classList.add('fade');
+                    setTimeout(() => alert.remove(), 500); // Delay for complete fade out
+                }, 3000); // 3000ms = 3 seconds
+            }
+        });
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous">
     </script>
     <script src="{{ asset('backend/dist/js/scripts.js') }}"></script>

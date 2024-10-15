@@ -12,7 +12,9 @@ class UserController extends Controller
      */
     public function index()
     {
-        $user = User::all();
+        $user = User::orderBy('nama_pegawai', 'asc')
+            ->orderBy('created_at', 'desc') // Mengurutkan data berdasarkan tanggal pembuatan, yang terbaru di atas
+            ->get();
         return view('user.index', compact('user'));
     }
 
@@ -29,30 +31,39 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        // dd($request->all()); // Memeriksa data yang diterima
-
-        // Validasi input
+        // Validasi
         $request->validate([
-            'nip' => 'required|string|unique:user',
+            'nip' => 'required|string|unique:user,nip',
             'password' => 'required|string|min:6',
             'level' => 'required|string|in:admin,operator',
             'nama_pegawai' => 'required|string|max:255',
             'jabatan' => 'required|string',
             'ruangan' => 'required|string',
+        ], [
+            'nip.required' => 'NIP harus diisi.',
+            'nip.unique' => 'NIP sudah terdaftar.',
+            'password.required' => 'Password harus diisi.',
+            'password.min' => 'Password minimal 6 karakter.',
+            'level.required' => 'Level harus dipilih.',
+            'nama_pegawai.required' => 'Nama pegawai harus diisi.',
+            'jabatan.required' => 'Jabatan harus dipilih.',
+            'ruangan.required' => 'Ruangan harus dipilih.',
         ]);
 
         // Simpan data user
         User::create([
             'nip' => $request->nip,
-            'password' => bcrypt($request->password),
+            'password' => bcrypt($request->password), // Encrypt password
             'level' => $request->level,
             'nama_pegawai' => $request->nama_pegawai,
             'jabatan' => $request->jabatan,
             'ruangan' => $request->ruangan,
         ]);
 
-        return redirect()->route('user.index')->with('success', 'Data berhasil disimpan');
+        // Redirect dengan pesan sukses
+        return redirect()->route('user.index')->with('success', 'Data berhasil disimpan.');
     }
+
 
     /**
      * Display the specified resource.

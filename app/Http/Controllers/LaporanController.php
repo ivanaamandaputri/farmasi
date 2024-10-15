@@ -14,6 +14,7 @@ class LaporanController extends Controller
         $laporanTransaksi = Transaksi::with('obat', 'user')
             ->whereMonth('created_at', date('m'))
             ->whereYear('created_at', date('Y'))
+            ->orderBy('created_at', 'desc') // Mengurutkan data berdasarkan tanggal pembuatan, yang terbaru di atas
             ->get();
 
         return view('laporan.index', compact('laporanTransaksi'));

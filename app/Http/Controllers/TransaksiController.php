@@ -4,105 +4,151 @@ namespace App\Http\Controllers;
 
 use App\Models\Transaksi;
 use App\Models\Obat;
-use App\Models\User;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 
 class TransaksiController extends Controller
 {
-    // Menampilkan daftar transaksi
     public function index()
     {
-        $transaksi = Transaksi::with(['obat', 'user'])->get();
+        $transaksi = Transaksi::with(['obat', 'user'])
+            ->where('user_id', Auth::id())
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         return view('transaksi.index', compact('transaksi'));
     }
 
-    // Menampilkan form untuk membuat transaksi baru
     public function create()
     {
-        $obat = Obat::orderBy('nama_obat', 'asc')->get();
-        $user = User::orderBy('nama_pegawai', 'asc')->get();
-        return view('transaksi.create', compact('obat', 'user'));
+        $obat = Obat::all();
+        return view('transaksi.create', compact('obat'));
     }
 
-    // Menyimpan data transaksi baru
     public function store(Request $request)
     {
-        // Validasi data tanpa 'nama_pemesan'
         $request->validate([
-            'nama_obat' => 'required|string',
-            'dosis' => 'required|string',
-            'jenis' => 'required|in:tablet,kapsul,botol,dus',
+            'obat_id' => 'required|exists:obat,id',
             'jumlah' => 'required|integer|min:1',
-            'harga' => 'required|numeric|min:0',
-            'ruangan' => 'required|in:Instalasi Farmasi,puskesmas Kaligangsa,puskesmas Margadana,puskesmas Tegal Barat,puskesmas Debong Lor,puskesmas Tegal Timur,puskesmas Slerok,puskesmas Tegal Selatan,puskesmas Bandung',
         ]);
 
-        // Menyimpan data transaksi, ambil nama pemesan dari pengguna yang sedang login
+        $obat = Obat::find($request->obat_id);
+        $total = $obat->harga * $request->jumlah;
+
+        // Periksa stok obat
+        if ($request->jumlah > $obat->stok) {
+            return back()->withErrors(['jumlah' => 'Jumlah melebihi stok yang tersedia.'])->withInput();
+        }
+
+        // Simpan transaksi baru
         Transaksi::create([
-            'nama_obat' => $request->nama_obat,
-            'dosis' => $request->dosis,
-            'jenis' => $request->jenis,
+            'obat_id' => $request->obat_id,
+            'user_id' => Auth::id(),
             'jumlah' => $request->jumlah,
-            'harga' => $request->harga,
-            'nama_pemesan' => Auth::user()->nama_pegawai, // Ambil nama pegawai yang login
-            'ruangan' => $request->ruangan,
+            'total' => $total,
+            'status' => 'pending',
         ]);
 
-        // Redirect ke halaman index dengan pesan sukses
-        return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil ditambahkan');
+        // Kurangi stok obat
+        $obat->decrement('stok', $request->jumlah);
+
+        return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil ditambahkan.');
     }
 
-    // Menampilkan form untuk mengedit data transaksi
     public function edit(Transaksi $transaksi)
     {
-        $obat = Obat::orderBy('nama_obat', 'asc')->get();
-        $user = User::orderBy('nama_pegawai', 'asc')->get();
-        return view('transaksi.edit', compact('transaksi', 'obat', 'user'));
+        $obat = Obat::all();
+        return view('transaksi.edit', compact('transaksi', 'obat'));
     }
 
-    // Memperbarui data transaksi
     public function update(Request $request, Transaksi $transaksi)
     {
         $request->validate([
-            'nama_obat' => 'required|string',
-            'dosis' => 'required|string',
-            'jenis' => 'required|in:tablet,kapsul,botol,dus',
+            'obat_id' => 'required|exists:obat,id',
             'jumlah' => 'required|integer|min:1',
-            'harga' => 'required|numeric|min:0',
-            'nama_pemesan' => 'required|string',
-            'ruangan' => 'required|in:Instalasi Farmasi,puskesmas Kaligangsa,puskesmas Margadana,puskesmas Tegal Barat,puskesmas Debong Lor,puskesmas Tegal Timur,puskesmas Slerok,puskesmas Tegal Selatan,puskesmas Bandung',
-
         ]);
 
-        $transaksi->update($request->all());
+        $obat = Obat::find($request->obat_id);
+        $total = $obat->harga * $request->jumlah;
+
+        // Hitung selisih jumlah obat
+        $selisih = $request->jumlah - $transaksi->jumlah;
+
+        // Periksa apakah stok mencukupi
+        if ($selisih > 0 && $selisih > $obat->stok) {
+            return back()->withErrors(['jumlah' => 'Jumlah melebihi stok yang tersedia.'])->withInput();
+        }
+
+        // Update transaksi
+        $transaksi->update([
+            'obat_id' => $request->obat_id,
+            'jumlah' => $request->jumlah,
+            'total' => $total,
+        ]);
+
+        // Update stok obat
+        $obat->increment('stok', $transaksi->jumlah); // Kembalikan stok lama
+        $obat->decrement('stok', $request->jumlah); // Kurangi stok baru
 
         return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil diperbarui.');
     }
 
-    // Menghapus data transaksi
     public function destroy(Transaksi $transaksi)
     {
+        $obat = $transaksi->obat;
+
+        // Kembalikan stok obat
+        $obat->increment('stok', $transaksi->jumlah);
         $transaksi->delete();
 
         return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil dihapus.');
     }
 
-    public function laporan()
+    public function showOrders()
     {
-        // Mengambil semua data transaksi dari database
-        $laporanTransaksi = Transaksi::all(); // Anda bisa menggunakan query lain sesuai kebutuhan
+        // Mengambil tanggal transaksi
+        $tanggalTransaksi = Transaksi::selectRaw('DATE(created_at) as date')
+            ->groupBy('date')
+            ->havingRaw('COUNT(*) > 0') // Hanya ambil tanggal dengan transaksi
+            ->pluck('date');
 
-        // Mengirim data ke tampilan
-        return view('laporan', compact('laporanTransaksi')); // 'laporan' adalah nama file tampilan
+        return view('pengajuan.order', compact('tanggalTransaksi'));
     }
 
-    // Mencetak transaksi
-    public function print($id)
+    public function getByDate($date)
+    {
+        $transaksiPerTanggal = Transaksi::whereDate('created_at', $date)->with(['obat', 'user'])->get();
+        if ($transaksiPerTanggal->isEmpty()) {
+            return redirect()->route('transaksi.index')->with('info', 'Tidak ada transaksi untuk tanggal ini.');
+        }
+
+        return view('transaksi.index', [
+            'transaksi' => $transaksiPerTanggal,
+            'selectedDate' => $date,
+        ]);
+    }
+    public function approve($id)
     {
         $transaksi = Transaksi::findOrFail($id);
-        $pdf = Pdf::loadView('transaksi.print', compact('transaksi'));
-        return $pdf->download('transaksi_' . $transaksi->id . '.pdf');
+        $transaksi->status = 'disetujui';
+        $transaksi->save();
+
+        // Kurangi stok obat
+        $transaksi->obat->decrement('stok', $transaksi->jumlah);
+
+        return redirect()->back()->with('success', 'Transaksi disetujui dan stok berkurang.');
+    }
+
+    public function reject(Request $request, $id)
+    {
+        $transaksi = Transaksi::findOrFail($id);
+        $transaksi->status = 'ditolak';
+        $transaksi->alasan_penolakan = $request->alasan;
+        $transaksi->save();
+        $request->validate([
+            'alasan' => 'required|string|max:255',
+        ]);
+
+        return redirect()->back()->with('success', 'Transaksi ditolak.');
     }
 }

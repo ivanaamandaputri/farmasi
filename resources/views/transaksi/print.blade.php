@@ -103,6 +103,7 @@
                     <th>Jenis</th>
                     <th>Jumlah</th>
                     <th>Harga (Rp)</th>
+                    <th>Total</th>
                     <th>Nama Pemesan</th>
                     <th>Ruangan</th>
                     <th>Tanggal Transaksi</th>
@@ -113,12 +114,14 @@
                     <tr>
                         <td>{{ $loop->iteration }}</td>
                         <td>{{ $transaksi->obat->nama_obat }}</td>
-                        <td>{{ $transaksi->dosis }}</td>
-                        <td>{{ $transaksi->jenis }}</td>
+                        <td>{{ $transaksi->obat->dosis }}</td>
+                        <td>{{ $transaksi->obat->jenis }}</td>
                         <td>{{ $transaksi->jumlah }}</td>
-                        <td>{{ number_format($transaksi->harga, 2, ',', '.') }}</td>
+                        <td>{{ $transaksi->obat->harga }}</td>
+                        <td>{{ $transaksi->total }}</td>
                         <td>{{ $transaksi->user->nama_pegawai }}</td>
-                        <td>{{ $transaksi->created_at->format('d-m-Y') }}</td>
+                        <td>{{ $transaksi->user->ruangan }}</td>
+                        <td>{{ $transaksi->created_at->format('d-m-Y H:i:s') }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -126,7 +129,6 @@
 
         <div class="mt-4 text-right">
             <button onclick="window.print();" class="btn btn-primary">Print</button>
-            <a href="{{ route('transaksi.index') }}" class="btn btn-secondary">Kembali</a>
         </div>
     </div>
 </body>

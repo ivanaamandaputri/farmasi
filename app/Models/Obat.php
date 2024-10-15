@@ -14,7 +14,7 @@ class Obat extends Model
         'nama_obat',
         'dosis',
         'jenis',
-        'jumlah',
+        'stok',
         'harga',
     ];
 

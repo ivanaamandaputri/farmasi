@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('nama_obat');
             $table->string('dosis');
-            $table->enum('jenis', ['tablet', 'kapsul', 'botol', 'dus']);
-            $table->integer('jumlah');
+            $table->enum('jenis', ['tablet', 'botol', 'dus']);
+            $table->integer('stok');
             $table->double('harga');
             $table->timestamps();
         });

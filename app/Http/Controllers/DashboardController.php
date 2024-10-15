@@ -20,14 +20,21 @@ class DashboardController extends Controller
         return view('dashboard', compact('jumlahObat', 'jumlahTransaksi', 'jumlahUser'));
     }
 
+    public function operator()
+    {
+        // Menampilkan dashboard khusus untuk operator
+        $totalObat = Obat::count();
+        return view('dashboard.operator', compact('totalObat'));
+    }
+
     public function index()
     {
-        // Jika user adalah operator, hanya tampilkan total obat
+        // Cek level user dan arahkan ke dashboard yang sesuai
         if (Auth::user()->level == 'operator') {
-            $totalObat = Obat::count();
-            return view('dashboard.operator', compact('totalObat'));
+            return redirect()->route('dashboard.operator'); // Redirect ke method operator
         }
 
-        return redirect()->route('dashboard.index')->with('error', 'Unauthorized access');
+        // Jika bukan operator, arahkan ke dashboard admin
+        return $this->dashboard();
     }
 }
