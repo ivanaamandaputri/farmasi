@@ -36,8 +36,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/index', [DashboardController::class, 'index'])->name('dashboard.index'); // Rute untuk dashboard operator
     Route::get('/pengajuan', [PengajuanController::class, 'showOrders'])->name('pengajuan.order');
     Route::post('/transaksi/get-by-date', [PengajuanController::class, 'getTransaksiByDate'])->name('transaksi.getByDate');
-    Route::get('/transaksi/approve/{id}', [TransaksiController::class, 'approve'])->name('transaksi.approve');
-    Route::get('/transaksi/reject/{id}', [TransaksiController::class, 'reject'])->name('transaksi.reject');
+    Route::post('/transaksi/approve/{id}', [TransaksiController::class, 'approve'])->name('transaksi.approve');
+    Route::post('/transaksi/reject/{id}', [TransaksiController::class, 'reject'])->name('transaksi.reject');
 });
 
 // Rute untuk admin

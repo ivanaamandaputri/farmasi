@@ -22,6 +22,7 @@ class PengajuanController extends Controller
     // Mendapatkan transaksi dengan AJAX berdasarkan tanggal
     public function getTransaksiByDate(Request $request)
     {
+        // Mendapatkan input date dari request
         $date = $request->input('date');
 
         // Mengambil transaksi berdasarkan tanggal dan relasinya

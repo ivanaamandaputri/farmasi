@@ -6,26 +6,51 @@
             <h4 class="card-title">Data Order Obat Masuk</h4>
         </div>
 
-        <!-- Modal Success -->
-        <div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        <!-- Modal Konfirmasi Setuju -->
+        <div class="modal fade" id="confirmApproveModal" tabindex="-1" role="dialog" aria-labelledby="confirmApproveModalLabel"
             aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Berhasil</h5>
+                        <h5 class="modal-title" id="confirmApproveModalLabel">Konfirmasi Persetujuan</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <div class="modal-body">
-                        {{ session('success') }}
+                        Apakah Anda yakin ingin menyetujui transaksi ini?
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                        <button type="button" class="btn btn-primary" id="confirmApproveButton">Setujui</button>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Modal Konfirmasi Tolak -->
+        <div class="modal fade" id="confirmRejectModal" tabindex="-1" role="dialog"
+            aria-labelledby="confirmRejectModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="confirmRejectModalLabel">Konfirmasi Penolakan</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        Apakah Anda yakin ingin menolak transaksi ini? Silakan masukkan alasan penolakan.
+                        <textarea class="form-control" id="rejectReason" rows="3" placeholder="Masukkan alasan"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                        <button type="button" class="btn btn-danger" id="confirmRejectButton">Tolak</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
         <div class="card-body">
             <div class="table-responsive">
@@ -137,7 +162,7 @@
                                             <td>${item.obat.jenis}</td>
                                             <td>${item.jumlah}</td>
                                             <td>${Number(item.obat.harga).toLocaleString('id-ID', { minimumFractionDigits: 2 })}</td>
-                                            <td>${Number(item.total).toLocaleString('id-ID', { minimumFractionDigits: 2 })}</td>
+                                            <td>${Number(item.total).toLocaleString('id-ID')}</td>
                                             <td>${item.user.nama_pegawai}</td>
                                             <td>${item.user.ruangan}</td>
                                             <td>${new Date(item.created_at).toLocaleString('id-ID')}</td>
@@ -196,14 +221,64 @@
                     }
                 });
             });
+        });
 
-            // Menutup dropdown saat mengklik di luar
-            $(document).on('click', function(e) {
-                if (!$(e.target).closest('#transaksi-container').length && !$(e.target).closest(
-                        '.date-link').length) {
-                    $('#transaksi-container').hide();
-                    isTransaksiVisible = false; // Set status visibilitas ke false
+        $(document).ready(function() {
+            let transactionId; // Variabel untuk menyimpan ID transaksi
+
+            // Klik tombol Setujui
+            $('.approve-btn').on('click', function() {
+                transactionId = $(this).data('id'); // Ambil ID transaksi
+                $('#confirmApproveModal').modal('show'); // Tampilkan modal konfirmasi setujui
+            });
+
+            // Klik tombol Tolak
+            $('.reject-btn').on('click', function() {
+                transactionId = $(this).data('id'); // Ambil ID transaksi
+                $('#confirmRejectModal').modal('show'); // Tampilkan modal konfirmasi tolak
+            });
+
+            // Konfirmasi Setujui
+            $('#confirmApproveButton').on('click', function() {
+                $.ajax({
+                    url: `/transaksi/approve/${transactionId}`, // Arahkan ke route approve
+                    method: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                    },
+                    success: function(response) {
+                        location.reload(); // Refresh halaman setelah berhasil
+                    },
+                    error: function(xhr) {
+                        alert('Terjadi kesalahan saat menyetujui transaksi.');
+                    }
+                });
+                $('#confirmApproveModal').modal('hide'); // Tutup modal setelah konfirmasi
+            });
+
+            // Konfirmasi Tolak
+            $('#confirmRejectButton').on('click', function() {
+                const reason = $('#rejectReason').val(); // Ambil alasan dari textarea
+                if (!reason) {
+                    alert('Alasan penolakan harus diisi.');
+                    return;
                 }
+
+                $.ajax({
+                    url: `/transaksi/reject/${transactionId}`, // Arahkan ke route reject
+                    method: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        alasan: reason, // Kirim alasan ke backend
+                    },
+                    success: function(response) {
+                        location.reload(); // Refresh halaman setelah berhasil
+                    },
+                    error: function(xhr) {
+                        alert('Terjadi kesalahan saat menolak transaksi.');
+                    }
+                });
+                $('#confirmRejectModal').modal('hide'); // Tutup modal setelah konfirmasi
             });
         });
     </script>

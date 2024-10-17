@@ -11,9 +11,10 @@ class TransaksiController extends Controller
 {
     public function index()
     {
+
         $transaksi = Transaksi::with(['obat', 'user'])
-            ->where('user_id', Auth::id())
-            ->orderBy('created_at', 'desc')
+            ->where('user_id', Auth::id())  // Mengambil transaksi yang sesuai dengan user login
+            ->orderBy('created_at', 'desc') // Urutkan dari yang terbaru
             ->get();
 
         return view('transaksi.index', compact('transaksi'));
@@ -33,11 +34,10 @@ class TransaksiController extends Controller
         ]);
 
         $obat = Obat::find($request->obat_id);
-        $total = $obat->harga * $request->jumlah;
 
         // Periksa stok obat
         if ($request->jumlah > $obat->stok) {
-            return back()->withErrors(['jumlah' => 'Jumlah melebihi stok yang tersedia.'])->withInput();
+            return back()->withErrors(['jumlah' => 'Jumlah melebihi stok yang tersedia'])->withInput();
         }
 
         // Simpan transaksi baru
@@ -45,14 +45,11 @@ class TransaksiController extends Controller
             'obat_id' => $request->obat_id,
             'user_id' => Auth::id(),
             'jumlah' => $request->jumlah,
-            'total' => $total,
+            'total' => $obat->harga * $request->jumlah,
             'status' => 'pending',
         ]);
 
-        // Kurangi stok obat
-        $obat->decrement('stok', $request->jumlah);
-
-        return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil ditambahkan.');
+        return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil ditambahkan dan menunggu persetujuan');
     }
 
     public function edit(Transaksi $transaksi)
@@ -76,7 +73,7 @@ class TransaksiController extends Controller
 
         // Periksa apakah stok mencukupi
         if ($selisih > 0 && $selisih > $obat->stok) {
-            return back()->withErrors(['jumlah' => 'Jumlah melebihi stok yang tersedia.'])->withInput();
+            return back()->withErrors(['jumlah' => 'Jumlah melebihi stok yang tersedia'])->withInput();
         }
 
         // Update transaksi
@@ -86,11 +83,7 @@ class TransaksiController extends Controller
             'total' => $total,
         ]);
 
-        // Update stok obat
-        $obat->increment('stok', $transaksi->jumlah); // Kembalikan stok lama
-        $obat->decrement('stok', $request->jumlah); // Kurangi stok baru
-
-        return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil diperbarui.');
+        return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil diperbarui');
     }
 
     public function destroy(Transaksi $transaksi)
@@ -101,7 +94,7 @@ class TransaksiController extends Controller
         $obat->increment('stok', $transaksi->jumlah);
         $transaksi->delete();
 
-        return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil dihapus.');
+        return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil dihapus');
     }
 
     public function showOrders()
@@ -119,7 +112,7 @@ class TransaksiController extends Controller
     {
         $transaksiPerTanggal = Transaksi::whereDate('created_at', $date)->with(['obat', 'user'])->get();
         if ($transaksiPerTanggal->isEmpty()) {
-            return redirect()->route('transaksi.index')->with('info', 'Tidak ada transaksi untuk tanggal ini.');
+            return redirect()->route('transaksi.index')->with('info', 'Tidak ada transaksi untuk tanggal ini');
         }
 
         return view('transaksi.index', [
@@ -127,28 +120,45 @@ class TransaksiController extends Controller
             'selectedDate' => $date,
         ]);
     }
+
     public function approve($id)
     {
         $transaksi = Transaksi::findOrFail($id);
-        $transaksi->status = 'disetujui';
+        $obat = $transaksi->obat;
+
+        // Pastikan stok mencukupi sebelum disetujui
+        if ($transaksi->jumlah > $obat->stok) {
+            return redirect()->back()->withErrors(['jumlah' => 'Stok tidak cukup untuk menyetujui transaksi ini']);
+        }
+
+        // Cek apakah transaksi sudah disetujui
+        if ($transaksi->status === 'Disetujui') {
+            return redirect()->back()->withErrors(['error' => 'Transaksi ini sudah disetujui']);
+        }
+
+        // Set status transaksi menjadi disetujui
+        $transaksi->status = 'Disetujui';
         $transaksi->save();
 
         // Kurangi stok obat
-        $transaksi->obat->decrement('stok', $transaksi->jumlah);
+        $obat->decrement('stok', $transaksi->jumlah);
 
-        return redirect()->back()->with('success', 'Transaksi disetujui dan stok berkurang.');
+        return redirect()->back()->with('success', 'Transaksi disetujui dan stok berkurang');
     }
 
-    public function reject(Request $request, $id)
+    public function reject($id)
     {
         $transaksi = Transaksi::findOrFail($id);
-        $transaksi->status = 'ditolak';
-        $transaksi->alasan_penolakan = $request->alasan;
-        $transaksi->save();
-        $request->validate([
-            'alasan' => 'required|string|max:255',
-        ]);
 
-        return redirect()->back()->with('success', 'Transaksi ditolak.');
+        // Cek apakah transaksi sudah disetujui
+        if ($transaksi->status === 'Disetujui') {
+            return redirect()->back()->withErrors(['error' => 'Transaksi ini sudah disetujui']);
+        }
+
+        // Set status transaksi menjadi ditolak
+        $transaksi->status = 'Ditolak';
+        $transaksi->save();
+
+        return redirect()->back()->with('success', 'Transaksi ditolak');
     }
 }

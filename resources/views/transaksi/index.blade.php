@@ -23,6 +23,7 @@
                                 <th>Total</th>
                                 <th>Nama Pemesan</th>
                                 <th>Ruangan</th>
+                                <th>Status</th>
                                 <th>Tanggal Transaksi</th>
                                 <th>Aksi</th>
                             </tr>
@@ -39,6 +40,7 @@
                                     <td>{{ $item->total }}</td>
                                     <td>{{ $item->user->nama_pegawai }}</td>
                                     <td>{{ $item->user->ruangan }}</td>
+                                    <td>{{ $item->status }}</td>
                                     <td>{{ $item->created_at->format('d-m-Y H:i:s') }}</td>
                                     <td>
                                         <a href="{{ route('transaksi.edit', $item->id) }}" class="btn btn-warning">Edit</a>
