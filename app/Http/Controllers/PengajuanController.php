@@ -7,16 +7,17 @@ use Illuminate\Http\Request;
 
 class PengajuanController extends Controller
 {
-    // Menampilkan data pesanan
     public function showOrders()
     {
-        // Mengambil tanggal transaksi dan mengelompokkan berdasarkan tanggal
         $tanggalTransaksi = Transaksi::selectRaw('DATE(created_at) as date')
             ->groupBy('date')
             ->havingRaw('COUNT(*) > 0')
             ->pluck('date');
 
-        return view('pengajuan.order', compact('tanggalTransaksi'));
+        // Ambil semua transaksi untuk ditampilkan
+        $transaksi = Transaksi::with(['obat', 'user'])->orderBy('created_at', 'asc')->get();
+
+        return view('pengajuan.order', compact('tanggalTransaksi', 'transaksi'));
     }
 
     // Mendapatkan transaksi dengan AJAX berdasarkan tanggal

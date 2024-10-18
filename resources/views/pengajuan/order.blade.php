@@ -2,9 +2,15 @@
 
 @section('content')
     <div class="container py-3">
-        <div class="container-fluid d-flex justify-content-between card-header">
+        <div class="container-fluid d-flex justify-content-between mb-3">
             <h4 class="card-title">Data Order Obat Masuk</h4>
         </div>
+
+        @if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
 
         <!-- Modal Konfirmasi Setuju -->
         <div class="modal fade" id="confirmApproveModal" tabindex="-1" role="dialog" aria-labelledby="confirmApproveModalLabel"
@@ -40,7 +46,8 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        Apakah Anda yakin ingin menolak transaksi ini? Silakan masukkan alasan penolakan.
+                        Apakah Anda yakin ingin menolak transaksi ini?
+                        <br> Silakan masukkan alasan penolakan
                         <textarea class="form-control" id="rejectReason" rows="3" placeholder="Masukkan alasan"></textarea>
                     </div>
                     <div class="modal-footer">
@@ -51,32 +58,9 @@
             </div>
         </div>
 
-
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table-striped table-hover table">
-                    <tbody>
-                        @if ($tanggalTransaksi->isEmpty())
-                            <tr>
-                                <td colspan="1">Tidak ada data transaksi.</td>
-                            </tr>
-                        @else
-                            @foreach ($tanggalTransaksi as $tanggal)
-                                <tr>
-                                    <td>
-                                        <a href="#" class="date-link" data-date="{{ $tanggal }}">
-                                            {{ \Carbon\Carbon::parse($tanggal)->format('d M Y') }}
-                                        </a>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        @endif
-                    </tbody>
-                </table>
-
-                <!-- Tabel untuk menampilkan transaksi -->
-                <div id="transaksi-container" style="display:none;">
-                    <h5>Transaksi pada <span id="selected-date"></span></h5>
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="table-responsive">
                     <table id="transaksi-table" class="display table-striped table-hover table">
                         <thead>
                             <tr>
@@ -96,6 +80,55 @@
                             </tr>
                         </thead>
                         <tbody id="transaksi-body">
+                            @if ($transaksi->isEmpty())
+                                <tr>
+                                    <td colspan="13">Tidak ada data transaksi.</td>
+                                </tr>
+                            @else
+                                @foreach ($transaksi as $index => $item)
+                                    <tr>
+                                        <td>{{ \Carbon\Carbon::parse($item->created_at)->format('d M Y') }}</td>
+                                        <td>{{ $index + 1 }}</td>
+                                        <td>{{ $item->obat->nama_obat }}</td>
+                                        <td>{{ $item->obat->dosis }}</td>
+                                        <td>{{ $item->obat->jenis }}</td>
+                                        <td>{{ $item->jumlah }}</td>
+                                        <td>{{ number_format($item->obat->harga, 0, ',', '.') }}</td>
+                                        <td>{{ number_format($item->total, 0, ',', '.') }}</td>
+                                        <td>{{ $item->user->nama_pegawai }}</td>
+                                        <td>{{ $item->user->ruangan }}</td>
+                                        <td>{{ \Carbon\Carbon::parse($item->created_at)->format('H:i:s') }}</td>
+                                        <td>
+                                            @if ($item->status === 'Disetujui')
+                                                <span class="badge badge-success">{{ $item->status }}</span>
+                                            @elseif ($item->status === 'Ditolak')
+                                                <span class="badge badge-danger">{{ $item->status }}</span>
+                                            @else
+                                                <span class="badge badge-warning">{{ $item->status }}</span>
+                                                <!-- Misalnya untuk status 'Menunggu' -->
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if ($item->status === 'Disetujui' || $item->status === 'Ditolak')
+                                                {{-- Jika status sudah disetujui atau ditolak, tidak ada tombol --}}
+                                            @else
+                                                <form action="{{ route('transaksi.approve', $item->id) }}" method="POST"
+                                                    style="display:inline;">
+                                                    @csrf
+                                                    <button type="button" class="btn btn-primary approve-btn"
+                                                        data-id="{{ $item->id }}">Setujui</button>
+                                                </form>
+                                                <form action="{{ route('transaksi.reject', $item->id) }}" method="POST"
+                                                    style="display:inline;">
+                                                    @csrf
+                                                    <button type="button" class="btn btn-danger reject-btn"
+                                                        data-id="{{ $item->id }}">Tolak</button>
+                                                </form>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            @endif
                         </tbody>
                     </table>
                 </div>
@@ -105,135 +138,36 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.21/js/dataTables.bootstrap4.min.js"></script>
     <script>
-        @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil',
-                text: '{{ session('success') }}',
-                confirmButtonText: 'OK'
-            });
-        @endif
-
         $(document).ready(function() {
-            let isTransaksiVisible = false; // Status visibilitas dropdown transaksi
-
-            $('.date-link').on('click', function(e) {
-                e.preventDefault();
-                const date = $(this).data('date');
-                $('#selected-date').text(date);
-
-                // Jika dropdown sudah ditampilkan, tutup
-                if (isTransaksiVisible && $('#transaksi-container').is(':visible')) {
-                    $('#transaksi-container').hide();
-                    isTransaksiVisible = false;
-                    return;
-                }
-
-                // Tampilkan dropdown transaksi
-                $('#transaksi-container').show();
-                isTransaksiVisible = true;
-
-                // Ambil data transaksi
-                $.ajax({
-                    url: "{{ route('transaksi.getByDate') }}",
-                    method: 'POST',
-                    data: {
-                        date: date,
-                        _token: '{{ csrf_token() }}' // Kirimkan token CSRF
-                    },
-                    success: function(data) {
-                        let tbody = '';
-                        let lastDate =
-                            null; // Untuk menyimpan tanggal terakhir yang ditampilkan
-                        if (data.length > 0) {
-                            data.forEach(function(item, index) {
-                                const currentDate = new Date(item.created_at)
-                                    .toLocaleDateString('id-ID');
-
-                                // Cek apakah tanggal saat ini sama dengan tanggal terakhir
-                                if (currentDate !== lastDate) {
-                                    tbody += `
-                                        <tr>
-                                            <td>${currentDate}</td> <!-- Tampilkan tanggal hanya jika berbeda -->
-                                            <td>${index + 1}</td>
-                                            <td>${item.obat.nama_obat}</td>
-                                            <td>${item.obat.dosis}</td>
-                                            <td>${item.obat.jenis}</td>
-                                            <td>${item.jumlah}</td>
-                                            <td>${Number(item.obat.harga).toLocaleString('id-ID', { minimumFractionDigits: 2 })}</td>
-                                            <td>${Number(item.total).toLocaleString('id-ID')}</td>
-                                            <td>${item.user.nama_pegawai}</td>
-                                            <td>${item.user.ruangan}</td>
-                                            <td>${new Date(item.created_at).toLocaleString('id-ID')}</td>
-                                            <td>${item.status}</td>
-                                            <td>
-                                                <form action="{{ route('transaksi.approve', '') }}/${item.id}" method="POST" style="display: inline-block;">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-primary btn-sm">Setujui</button>
-                                                </form>
-                                                <form action="{{ route('transaksi.reject', '') }}/${item.id}" method="POST" style="display: inline-block;">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-danger btn-sm">Tolak</button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                    `;
-                                    lastDate =
-                                        currentDate; // Update tanggal terakhir yang ditampilkan
-                                } else {
-                                    tbody += `
-                                        <tr>
-                                            <td></td> <!-- Tampilkan kosong jika tanggal sama -->
-                                            <td>${index + 1}</td>
-                                            <td>${item.obat.nama_obat}</td>
-                                            <td>${item.obat.dosis}</td>
-                                            <td>${item.obat.jenis}</td>
-                                            <td>${item.jumlah}</td>
-                                            <td>${Number(item.obat.harga).toLocaleString('id-ID', { minimumFractionDigits: 2 })}</td>
-                                            <td>${Number(item.total).toLocaleString('id-ID', { minimumFractionDigits: 2 })}</td>
-                                            <td>${item.user.nama_pegawai}</td>
-                                            <td>${item.user.ruangan}</td>
-                                            <td>${new Date(item.created_at).toLocaleString('id-ID')}</td>
-                                            <td>${item.status}</td>
-                                            <td>
-                                                <form action="{{ route('transaksi.approve', '') }}/${item.id}" method="POST" style="display: inline-block;">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-primary btn-sm">Setujui</button>
-                                                </form>
-                                                <form action="{{ route('transaksi.reject', '') }}/${item.id}" method="POST" style="display: inline-block;">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-danger btn-sm">Tolak</button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                    `;
-                                }
-                            });
-                        } else {
-                            tbody =
-                                '<tr><td colspan="13">Tidak ada transaksi untuk tanggal ini.</td></tr>';
-                        }
-                        $('#transaksi-body').html(tbody);
-                    },
-                    error: function() {
-                        alert('Terjadi kesalahan saat mengambil data transaksi.');
+            $('#transaksi-table').DataTable({
+                "pageLength": 10,
+                "language": {
+                    "lengthMenu": "Tampilkan _MENU_ entri",
+                    "zeroRecords": "Tidak ada data yang cocok",
+                    "info": "Menampilkan halaman _PAGE_ dari _PAGES_",
+                    "infoEmpty": "Tidak ada entri yang tersedia",
+                    "infoFiltered": "(disaring dari _MAX_ total entri)",
+                    "search": "Cari:",
+                    "paginate": {
+                        "previous": "Sebelumnya",
+                        "next": "Berikutnya"
                     }
-                });
+                }
             });
-        });
 
-        $(document).ready(function() {
             let transactionId; // Variabel untuk menyimpan ID transaksi
 
             // Klik tombol Setujui
-            $('.approve-btn').on('click', function() {
+            $(document).on('click', '.approve-btn', function() {
                 transactionId = $(this).data('id'); // Ambil ID transaksi
                 $('#confirmApproveModal').modal('show'); // Tampilkan modal konfirmasi setujui
             });
 
             // Klik tombol Tolak
-            $('.reject-btn').on('click', function() {
+            $(document).on('click', '.reject-btn', function() {
                 transactionId = $(this).data('id'); // Ambil ID transaksi
                 $('#confirmRejectModal').modal('show'); // Tampilkan modal konfirmasi tolak
             });

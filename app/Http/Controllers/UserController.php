@@ -40,14 +40,14 @@ class UserController extends Controller
             'jabatan' => 'required|string',
             'ruangan' => 'required|string',
         ], [
-            'nip.required' => 'NIP harus diisi.',
-            'nip.unique' => 'NIP sudah terdaftar.',
-            'password.required' => 'Password harus diisi.',
-            'password.min' => 'Password minimal 6 karakter.',
-            'level.required' => 'Level harus dipilih.',
-            'nama_pegawai.required' => 'Nama pegawai harus diisi.',
-            'jabatan.required' => 'Jabatan harus dipilih.',
-            'ruangan.required' => 'Ruangan harus dipilih.',
+            'nip.required' => 'NIP harus diisi',
+            'nip.unique' => 'NIP sudah terdaftar',
+            'password.required' => 'Password harus diisi',
+            'password.min' => 'Password minimal 6 karakter',
+            'level.required' => 'Level harus dipilih',
+            'nama_pegawai.required' => 'Nama pegawai harus diisi',
+            'jabatan.required' => 'Jabatan harus dipilih',
+            'ruangan.required' => 'Ruangan harus dipilih',
         ]);
 
         // Simpan data user
