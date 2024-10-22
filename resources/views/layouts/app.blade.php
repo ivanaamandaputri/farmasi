@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>Dashboard SI Farmasi</title>
+    <title>Dashboard SIFON</title>
     <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" />
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ asset('backend/dist/css/styles.css') }}" rel="stylesheet" />
@@ -33,7 +33,7 @@
 <body class="sb-nav-fixed">
     <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
         <!-- Navbar Brand-->
-        <a class="navbar-brand ps-3" href="#">SI Farmasi</a>
+        <a class="navbar-brand ps-3" href="#">SIFON</a>
         <!-- Sidebar Toggle-->
         <button class="btn btn-link btn-sm order-lg-0 me-lg-0 order-1 me-4" id="sidebarToggle" href="#!"><i
                 class="fas fa-bars"></i></button>
@@ -77,29 +77,56 @@
 
                         <!-- Hanya tampil untuk Admin -->
                         @if (Auth::user()->level == 'admin')
-                            <a class="nav-link {{ request()->is('user') ? 'active' : '' }}" href="/user">
-                                <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
-                                User
+                            <a class="nav-link collapsed" href="#" data-bs-toggle="collapse"
+                                data-bs-target="#collapseMasterData" aria-expanded="false"
+                                aria-controls="collapseMasterData">
+                                <div class="sb-nav-link-icon"><i class="fas fa-database"></i></div>
+                                Master Data
+                                <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                             </a>
-                            <a class="nav-link {{ request()->is('obat') ? 'active' : '' }}" href="/obat">
-                                <div class="sb-nav-link-icon"><i class="fas fa-pills"></i></div>
-                                Data Obat
+                            <div class="collapse" id="collapseMasterData" aria-labelledby="headingMasterData"
+                                data-bs-parent="#sidenavAccordion">
+                                <nav class="sb-sidenav-menu-nested nav">
+                                    <a class="nav-link {{ request()->is('user') ? 'active' : '' }}" href="/user">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
+                                        User
+                                    </a>
+                                    <a class="nav-link {{ request()->is('obat') ? 'active' : '' }}" href="/obat">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-pills"></i></div>
+                                        Data Obat
+                                    </a>
+                                </nav>
+                            </div>
+                            <a class="nav-link collapsed" href="#" data-bs-toggle="collapse"
+                                data-bs-target="#collapseTransaksi" aria-expanded="false"
+                                aria-controls="collapseTransaksi">
+                                <div class="sb-nav-link-icon"><i class="fas fa-exchange-alt"></i></div>
+                                Transaksi
+                                <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                             </a>
-                            <a class="nav-link {{ request()->is('pengajuan/order') ? 'active' : '' }}"
-                                href="{{ route('pengajuan.order') }}">
-                                <div class="sb-nav-link-icon"><i class="fas fa-shopping-cart"></i></div>
-                                Order Masuk
-                            </a>
+                            <div class="collapse" id="collapseTransaksi" aria-labelledby="headingTransaksi"
+                                data-bs-parent="#sidenavAccordion">
+                                <nav class="sb-sidenav-menu-nested nav">
+                                    <a class="nav-link {{ request()->is('pengajuan') ? 'active' : '' }}"
+                                        href="{{ route('pengajuan.order') }}">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-shopping-cart"></i></div>
+                                        Order Masuk
+                                    </a>
+                                </nav>
+                            </div>
+
+
                             <a class="nav-link {{ request()->is('laporan') ? 'active' : '' }}" href="/laporan">
-                                <div class="sb-nav-link-icon"><i class="fas fa-pills"></i></div>
-                                Laporan Order
+                                <div class="sb-nav-link-icon"><i class="fas fa-print"></i></div>
+                                Laporan
                             </a>
                             <a class="nav-link" href="#"
                                 onclick="event.preventDefault(); if(confirm('Apakah Anda yakin ingin keluar?')) { document.getElementById('logout-form').submit(); }">
                                 <div class="sb-nav-link-icon"><i class="fas fa-sign-out-alt"></i></div>
                                 Keluar
                             </a>
-                            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST"
+                                style="display: none;">
                                 @csrf
                             </form>
                     </div>
@@ -123,10 +150,11 @@
                     </a>
                 @endif
 
-                <div class="sb-sidenav-footer">
+                <div class="sb-sidenav-footer" style="color: white;">
                     <div class="small">Masuk Sebagai</div>
                     <span class="fw-bold" style="font-size: 20px">{{ Auth::user()->level }}</span>
                 </div>
+
             </nav>
         </div>
         <div id="layoutSidenav_content">

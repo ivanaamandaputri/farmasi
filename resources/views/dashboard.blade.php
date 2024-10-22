@@ -2,13 +2,12 @@
 
 @section('content')
     <h1 class="mt-4">Dashboard</h1>
-    <ol class="breadcrumb mb-4">
-        <span class="profile-username" style="background-color: transparent;">
-            <span class="op-7" style="font-size: 18px">Hi,</span>
-            <span class="fw-bold" style="font-size: 20px">{{ Auth::user()->level }}</span>
-        </span>
+    <span class="op-7" style="font-size: 18px">Halo,</span>
+    <span class="fw-bold" style="font-size: 20px">{{ Auth::user()->level }}</span>
+    </span>
     </ol>
-
+    <ol>
+    </ol>
     <div class="row">
         <!-- Card Jumlah Obat -->
         <div class="col-xl-3 col-md-6">

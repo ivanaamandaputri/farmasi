@@ -18,7 +18,7 @@ return new class extends Migration
             $table->integer('jumlah');
             $table->integer('total');
             $table->string('status')->default('Pengajuan');
-            // $table->string('alasan_penolakan')->nullable();
+            $table->string('alasan_penolakan')->nullable();
             $table->foreign('obat_id')->references('id')->on('obat');
             $table->foreign('user_id')->references('id')->on('user');
             $table->timestamps();

@@ -3,6 +3,12 @@
 @section('content')
     <div class="container py-3">
         <div class="card mb-4">
+            @if (session('success'))
+                <div class="alert alert-success">
+                    {{ session('success') }}
+                </div>
+            @endif
+
             <div class="card-header d-flex justify-content-between">
                 <div class="container-fluid d-flex justify-content-between">
                     <h4 class="card-title">Data Order Obat</h4>

@@ -107,7 +107,7 @@
                 hargaInput.value = harga;
 
                 // Update total
-                totalInput.value = (harga * jumlah).toFixed(2); // Format total dengan 2 desimal
+                totalInput.value = (harga * jumlah);
             };
 
             // Event listener untuk perubahan pada jumlah
@@ -117,7 +117,7 @@
                 const jumlah = parseInt(jumlahInput.value) || 0;
 
                 // Update total
-                totalInput.value = (harga * jumlah).toFixed(2);
+                totalInput.value = (harga * jumlah);
             });
 
             // Event listener untuk perubahan pada obat
