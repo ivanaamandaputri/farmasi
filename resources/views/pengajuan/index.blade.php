@@ -8,7 +8,7 @@
                 {{ session('success') }}
             </div>
         @endif
-        <div class="card mb-4">
+        <div class="card mb-4" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); border: none;">
             <div class="card-body">
                 <div class="table-responsive">
                     <table id="datatablesSimple" class="table-striped table-hover table">
@@ -55,11 +55,11 @@
                                     <td>
                                         @if ($item->status === 'Disetujui' || $item->status === 'Ditolak')
                                             @if ($item->status === 'Ditolak')
-                                                <button type="button" class="btn btn-sm btn-info view-reason-btn"
+                                                <button type="button" class="btn btn-sm btn-light view-reason-btn"
                                                     data-reason="{{ $item->alasan_penolakan }}">Alasan</button>
                                             @endif
                                         @else
-                                            <button type="button" class="btn btn-sm btn-success approve-btn"
+                                            <button type="button" class="btn btn-sm btn-primary approve-btn"
                                                 data-id="{{ $item->id }}">Setuju</button>
                                             <button type="button" class="btn btn-sm btn-danger reject-btn"
                                                 data-id="{{ $item->id }}">Tolak</button>
@@ -161,7 +161,8 @@
                 },
                 success: function(response) {
                     showToast(response.message); // Menampilkan pesan sukses
-                    setTimeout(() => location.reload()); // Reload halaman setelah menampilkan toast
+                    setTimeout(() => location.reload(),
+                        2000); // Reload halaman setelah menampilkan toast
                 },
                 error: function(xhr) {
                     showToast(xhr.responseJSON.error); // Menampilkan pesan error jika ada
@@ -206,4 +207,11 @@
             $('#reasonModal').modal('show');
         });
     </script>
+
+    <style>
+        .card {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            /* Kesan timbul 3D */
+        }
+    </style>
 @endsection

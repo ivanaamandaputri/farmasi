@@ -11,7 +11,7 @@
                 <div class="h5 font-weight-bold mb-0">{{ $totalObat }}</div>
             </div>
             <div class="card-footer d-flex align-items-center justify-content-between">
-                <a class="small stretched-link text-white" href="{{ route('dashboard.index') }}">Lihat Detail</a>
+                <a class="small stretched-link text-white" href="{{ route('operator.dataobat') }}">Lihat Detail</a>
                 <div class="small text-white"><i class="fas fa-angle-right"></i></div>
             </div>
         </div>

@@ -10,21 +10,21 @@ class ObatController extends Controller
     // Menampilkan daftar obat
     public function index()
     {
+        // Mengambil semua data obat dan urutkan berdasarkan nama obat dan tanggal pembuatan
         $obat = Obat::orderBy('nama_obat', 'asc')
-            ->orderBy('created_at', 'desc') // Mengurutkan data berdasarkan tanggal pembuatan, yang terbaru di atas
-            ->get(); // Mengambil semua data obat dan urutkan berdasarkan nama obat
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         $batasMinimum = 5; // Batas minimum stok
 
         // Cek stok obat yang di bawah atau sama dengan batas minimum
         foreach ($obat as $ob) {
-            if ($ob->stok <= $batasMinimum) {
-                $ob->warning = true; // Tambahkan property 'warning' jika stok hampir habis
-            } else {
-                $ob->warning = false;
-            }
+            $ob->warning = $ob->stok <= $batasMinimum; // Tambahkan property 'warning' jika stok hampir habis
         }
 
-        return view('obat.index', compact('obat')); // Mengembalikan view dengan data obat
+        // Cek level user dan kembalikan data ke view yang sesuai
+        $readOnly = auth()->user()->level === 'operator'; // true jika operator, false jika admin
+        return view('obat.index', compact('obat', 'readOnly')); // Mengembalikan view dengan data obat
     }
 
     // Menampilkan form untuk membuat obat baru
@@ -91,5 +91,18 @@ class ObatController extends Controller
         $obat = Obat::find($id);
         $obat->delete();
         return redirect()->route('obat.index')->with('success', 'Obat berhasil dihapus');
+    }
+
+    public function show(string $id)
+    {
+        $obat = Obat::findOrFail($id); // Mencari obat berdasarkan ID
+        return view('obat.show', compact('obat')); // Mengembalikan view untuk detail obat
+    }
+
+    // Menampilkan data obat untuk operator
+    public function operatorIndex()
+    {
+        $obat = Obat::orderBy('nama_obat', 'asc')->get();
+        return view('operator.dataobat', compact('obat')); // Pastikan untuk mengarahkan ke view yang tepat
     }
 }

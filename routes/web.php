@@ -33,11 +33,6 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
     Route::get('/dashboard/operator', [DashboardController::class, 'operator'])->name('dashboard.operator'); // Rute untuk operator
-    Route::get('/dashboard/index', [DashboardController::class, 'index'])->name('dashboard.index'); // Rute untuk dashboard operator
-    Route::get('/pengajuan', [PengajuanController::class, 'showOrders'])->name('pengajuan.order');
-    Route::post('/transaksi/get-by-date', [PengajuanController::class, 'getTransaksiByDate'])->name('transaksi.getByDate');
-    Route::post('/transaksi/approve/{id}', [TransaksiController::class, 'approve'])->name('transaksi.approve');
-    Route::post('/transaksi/reject/{id}', [TransaksiController::class, 'reject'])->name('transaksi.reject');
 });
 
 // Rute untuk admin
@@ -50,11 +45,16 @@ Route::middleware(['auth', 'check.level:admin'])->group(function () {
     Route::get('laporan', [LaporanController::class, 'index'])->name('laporan.index');
     Route::get('laporan/download', [LaporanController::class, 'download'])->name('laporan.download');
     Route::post('/pengajuan/transaksi', [PengajuanController::class, 'getTransaksiByDate'])->name('pengajuan.getTransaksiByDate');
+    Route::get('/laporan/obatMasuk', [LaporanController::class, 'obatMasuk'])->name('laporan.obatMasuk');
+    Route::get('/laporan/obatKeluar', [LaporanController::class, 'obatKeluar'])->name('laporan.obatKeluar');
+    Route::get('/pengajuan', [PengajuanController::class, 'showOrders'])->name('pengajuan.order');
+    Route::post('/transaksi/approve/{id}', [TransaksiController::class, 'approve'])->name('transaksi.approve');
+    Route::post('/transaksi/reject/{id}', [TransaksiController::class, 'reject'])->name('transaksi.reject');
 });
 
 // Rute untuk operator
-Route::middleware(['auth', 'check.level:operator,admin'])->group(function () {
-    Route::get('/obat/{obat}', [ObatController::class, 'show'])->name('obat.show');
+Route::middleware(['auth', 'check.level:operator'])->group(function () {
+    Route::get('/operator/dataobat', [ObatController::class, 'operatorIndex'])->name('operator.dataobat');
     Route::resource('transaksi', TransaksiController::class);
     Route::get('/transaksi/{id}/print', [TransaksiController::class, 'print'])->name('transaksi.print');
 });

@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>Dashboard SIFON</title>
+    <title>Dashboard SIFARMA</title>
     <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" />
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ asset('backend/dist/css/styles.css') }}" rel="stylesheet" />
@@ -33,7 +33,7 @@
 <body class="sb-nav-fixed">
     <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
         <!-- Navbar Brand-->
-        <a class="navbar-brand ps-3" href="#">SIFON</a>
+        <a class="navbar-brand ps-3" href="#">SIFARMA</a>
         <!-- Sidebar Toggle-->
         <button class="btn btn-link btn-sm order-lg-0 me-lg-0 order-1 me-4" id="sidebarToggle" href="#!"><i
                 class="fas fa-bars"></i></button>
@@ -69,10 +69,25 @@
                 <div class="sb-sidenav-menu">
                     <div class="nav">
                         <div class="sb-sidenav-menu-heading"></div>
-                        <a class="nav-link {{ request()->is('dashboard') ? 'active' : '' }}" href="/dashboard">
-                            <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
-                            Dashboard
-                        </a>
+
+                        <!-- Tautan Dashboard untuk Admin -->
+                        @if (Auth::user()->level == 'admin')
+                            <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
+                                href="{{ route('dashboard') }}">
+                                <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
+                                Dashboard
+                            </a>
+                        @endif
+
+                        <!-- Tautan Dashboard untuk Operator -->
+                        @if (Auth::user()->level == 'operator')
+                            <a class="nav-link {{ request()->routeIs('dashboard.operator') ? 'active' : '' }}"
+                                href="{{ route('dashboard.operator') }}">
+                                <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
+                                Dashboard
+                            </a>
+                        @endif
+
                         <div class="sb-sidenav-menu-heading">Menu</div>
 
                         <!-- Hanya tampil untuk Admin -->
@@ -135,7 +150,8 @@
 
                 <!-- Menu Transaksi untuk Operator -->
                 @if (Auth::user()->level == 'operator')
-                    <a class="nav-link {{ request()->is('obat') ? 'active' : '' }}" href="{{ route('obat.index') }}">
+                    <a class="nav-link {{ request()->is('operator') ? 'active' : '' }}"
+                        href="{{ route('operator.dataobat') }}">
                         <div class="sb-nav-link-icon"><i class="fas fa-pills"></i></div>
                         Data Obat
                     </a>

@@ -24,7 +24,8 @@ class DashboardController extends Controller
     {
         // Menampilkan dashboard khusus untuk operator
         $totalObat = Obat::count();
-        return view('dashboard.operator', compact('totalObat'));
+        return view('operator.dashboard', compact('totalObat'));
+        return redirect()->route('obat.index.operator');
     }
 
     public function index()

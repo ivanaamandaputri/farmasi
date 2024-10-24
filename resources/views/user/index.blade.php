@@ -56,4 +56,10 @@
             </div>
         </div>
     </div>
+    <style>
+        .card {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            /* Kesan timbul 3D */
+        }
+    </style>
 @endsection

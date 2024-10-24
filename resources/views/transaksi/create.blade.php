@@ -63,7 +63,7 @@
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="harga">Harga</label>
+                                <label for="harga">Harga (Rp)</label>
                                 <input type="text" name="harga" class="form-control" id="harga" readonly required>
                             </div>
                         </div>

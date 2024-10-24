@@ -17,8 +17,10 @@ class LaporanController extends Controller
             ->orderBy('created_at', 'desc') // Mengurutkan data berdasarkan tanggal pembuatan, yang terbaru di atas
             ->get();
 
-        return view('laporan.index', compact('laporanTransaksi'));
+        return view('laporan.index', compact('laporanTransaksi')); // Pastikan ini
     }
+
+
 
     public function download()
     {
@@ -31,5 +33,34 @@ class LaporanController extends Controller
         // Generate PDF
         $pdf = PDF::loadView('laporan.pdf', compact('laporanTransaksi'));
         return $pdf->download('laporan_bulanan.pdf');
+    }
+
+
+    public function obatMasuk(Request $request)
+    {
+        $bulan = $request->bulan;
+        $tahun = $request->tahun ?? $request->tahun_per;
+
+        $transaksiObatMasuk = Transaksi::where('jenis_transaksi', 'masuk')
+            ->whereMonth('created_at', $bulan)
+            ->whereYear('created_at', $tahun)
+            ->where('status', 'disetujui')
+            ->get();
+
+        return view('laporan.obatMasuk', compact('transaksiObatMasuk'));
+    }
+
+    public function obatKeluar(Request $request)
+    {
+        $bulan = $request->bulan_keluar;
+        $tahun = $request->tahun_keluar ?? $request->tahun_keluar_per;
+
+        $transaksiObatKeluar = Transaksi::where('jenis_transaksi', 'keluar')
+            ->whereMonth('created_at', $bulan)
+            ->whereYear('created_at', $tahun)
+            ->where('status', 'disetujui')
+            ->get();
+
+        return view('laporan.obatKeluar', compact('transaksiObatKeluar'));
     }
 }

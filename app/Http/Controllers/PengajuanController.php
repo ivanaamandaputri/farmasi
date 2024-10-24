@@ -45,12 +45,12 @@ class PengajuanController extends Controller
 
         // Pastikan stok mencukupi sebelum disetujui
         if ($transaksi->jumlah > $obat->stok) {
-            return redirect()->back()->withErrors(['jumlah' => 'Stok tidak cukup untuk menyetujui transaksi ini']);
+            return response()->json(['error' => 'Stok tidak cukup untuk menyetujui transaksi ini'], 400);
         }
 
         // Cek apakah transaksi sudah disetujui
         if ($transaksi->status === 'Disetujui') {
-            return redirect()->back()->withErrors(['error' => 'Transaksi ini sudah disetujui']);
+            return response()->json(['error' => 'Transaksi ini sudah disetujui'], 400);
         }
 
         // Set status transaksi menjadi disetujui
@@ -60,8 +60,9 @@ class PengajuanController extends Controller
         // Kurangi stok obat
         $obat->decrement('stok', $transaksi->jumlah);
 
-        return redirect()->route('transaksi.index')->with('success', 'Transaksi disetujui dan stok berkurang');
+        return response()->json(['message' => 'Transaksi disetujui dan stok berkurang']);
     }
+
 
     public function reject(Request $request, $id)
     {
