@@ -13,9 +13,12 @@ class Obat extends Model
     protected $fillable = [
         'nama_obat',
         'dosis',
-        'jenis',
         'stok',
         'harga',
+        'exp',
+        'keterangan',
+        'foto',
+        'jenis_obat_id'
     ];
 
     public function setNamaObatAttribute($value)
@@ -28,8 +31,8 @@ class Obat extends Model
         $this->attributes['dosis'] = ucwords(strtolower($value)); // Ubah huruf pertama menjadi kapital
     }
 
-    public function setJenisAttribute($value)
+    public function jenisobat()
     {
-        $this->attributes['jenis'] = ucwords(strtolower($value)); // Ubah huruf pertama menjadi kapital
+        return $this->belongsTo(JenisObat::class, 'jenis_obat_id');
     }
 }

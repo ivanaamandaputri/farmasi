@@ -4,80 +4,111 @@ namespace App\Http\Controllers;
 
 use App\Models\Transaksi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PengajuanController extends Controller
 {
+    /**
+     * Menampilkan semua transaksi, dikelompokkan berdasarkan tanggal.
+     */
     public function showOrders()
     {
-        // Mengambil tanggal transaksi
-        $tanggalTransaksi = Transaksi::selectRaw('DATE(created_at) as date')
-            ->groupBy('date')
-            ->havingRaw('COUNT(*) > 0') // Hanya ambil tanggal dengan transaksi
-            ->pluck('date');
-
-        // Ambil transaksi yang sesuai untuk ditampilkan dan urutkan dari yang terbaru
         $transaksi = Transaksi::with(['obat', 'user'])
-            ->orderBy('created_at', 'desc') // Urutkan berdasarkan tanggal terbaru
+            ->orderBy('tanggal', 'desc')
             ->get();
 
-        return view('pengajuan.index', compact('tanggalTransaksi', 'transaksi'));
+        $groupedTransaksi = $transaksi->groupBy('tanggal')
+            ->map(function ($transactions) {
+                return $transactions->groupBy('user.ruangan');
+            });
+
+        return view('pengajuan.index', compact('groupedTransaksi'));
     }
 
-
-
-    public function getByDate($date)
+    /**
+     * Menampilkan semua transaksi untuk admin.
+     */
+    public function showTransactions()
     {
-        $transaksiPerTanggal = Transaksi::whereDate('created_at', $date)->with(['obat', 'user'])->get();
-        if ($transaksiPerTanggal->isEmpty()) {
-            return redirect()->route('transaksi.index')->with('info', 'Tidak ada transaksi untuk tanggal ini');
-        }
+        $transaksiGroup = Transaksi::with(['obat', 'user'])
+            ->orderBy('tanggal', 'desc')
+            ->get();
 
-        return view('transaksi.index', [
-            'transaksi' => $transaksiPerTanggal,
-            'selectedDate' => $date,
-        ]);
+        return view('transaksi.index', compact('transaksiGroup'));
     }
 
-    public function approve($id)
+    /**
+     * Menyetujui transaksi.
+     */
+    public function approve(Request $request, $id)
     {
+        // Mencari transaksi berdasarkan ID
         $transaksi = Transaksi::findOrFail($id);
         $obat = $transaksi->obat;
 
-        // Pastikan stok mencukupi sebelum disetujui
-        if ($transaksi->jumlah > $obat->stok) {
-            return response()->json(['error' => 'Stok tidak cukup untuk menyetujui transaksi ini'], 400);
-        }
+        // Validasi input untuk acc (jumlah yang disetujui)
+        $request->validate([
+            'acc' => 'required|integer|min:1|max:' . $obat->stok,
+        ]);
 
-        // Cek apakah transaksi sudah disetujui
+        // Menyimpan nilai acc dari request
+        $acc = $request->input('acc');
+
+        // Memastikan transaksi belum disetujui
         if ($transaksi->status === 'Disetujui') {
-            return response()->json(['error' => 'Transaksi ini sudah disetujui'], 400);
+            return response()->json(['error' => 'Transaksi sudah disetujui'], 400);
         }
 
-        // Set status transaksi menjadi disetujui
-        $transaksi->status = 'Disetujui';
-        $transaksi->save();
+        // Memastikan stok cukup untuk transaksi
+        if ($acc > $obat->stok) {
+            return response()->json(['error' => 'Stok tidak cukup untuk menyetujui transaksi ini.'], 400);
+        }
 
-        // Kurangi stok obat
-        $obat->decrement('stok', $transaksi->jumlah);
+        // Menggunakan DB transaction untuk menjaga integritas data
+        DB::transaction(function () use ($transaksi, $obat, $acc) {
+            // Memperbarui status transaksi dan informasi lainnya
+            $transaksi->update([
+                'total' => $acc * $obat->harga,  // Menghitung total berdasarkan jumlah yang disetujui
+                'status' => 'Disetujui',          // Memperbarui status transaksi
+                'acc' => $acc,                    // Menyimpan jumlah yang disetujui
+            ]);
 
-        return response()->json(['message' => 'Transaksi disetujui dan stok berkurang']);
+            // Mengurangi stok obat sesuai jumlah yang disetujui
+            $obat->decrement('stok', $acc);
+        });
+
+        // Logging informasi transaksi yang disetujui
+        Log::info("Transaksi ID {$id} disetujui oleh user ID " . Auth::id());
+
+        // Mengembalikan respon sukses
+        return response()->json(['message' => 'Transaksi disetujui dan stok berkurang.']);
     }
 
 
+    /**
+     * Menolak transaksi.
+     */
     public function reject(Request $request, $id)
     {
+        $request->validate([
+            'reason' => 'required|string|max:255',
+        ]);
+
         $transaksi = Transaksi::findOrFail($id);
 
-        // Cek apakah transaksi sudah disetujui
-        if ($transaksi->status === 'Disetujui') {
-            return redirect()->back()->withErrors(['error' => 'Transaksi ini sudah disetujui']);
+        if ($transaksi->status === 'Ditolak') {
+            return response()->json(['error' => 'Transaksi sudah ditolak.'], 400);
         }
 
-        // Set status transaksi menjadi ditolak
-        $transaksi->status = 'Ditolak';
-        $transaksi->alasan_penolakan = $request->alasan; // Simpan alasan penolakan
-        $transaksi->save();
+        $transaksi->update([
+            'status' => 'Ditolak',
+            'alasan_penolakan' => $request->reason,
+        ]);
 
-        return response()->json(['success' => 'Transaksi berhasil ditolak']);
+        Log::info("Transaksi ID {$id} ditolak oleh user ID " . Auth::id() . " dengan alasan: " . $request->reason);
+
+        return response()->json(['message' => 'Transaksi berhasil ditolak.']);
     }
 }

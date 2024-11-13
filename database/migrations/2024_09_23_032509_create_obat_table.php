@@ -13,11 +13,15 @@ return new class extends Migration
     {
         Schema::create('obat', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('jenis_obat_id');
             $table->string('nama_obat');
             $table->string('dosis');
-            $table->enum('jenis', ['tablet', 'botol', 'dus']);
             $table->integer('stok');
             $table->double('harga');
+            $table->date('exp')->nullable();
+            $table->longtext('keterangan')->nullable();
+            $table->string('foto')->nullable();
+            $table->foreign('jenis_obat_id')->references('id')->on('jenis_obat');
             $table->timestamps();
         });
     }

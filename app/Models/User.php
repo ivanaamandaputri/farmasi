@@ -17,6 +17,7 @@ class User extends Authenticatable
         'nip',
         'password',
         'level',
+        'foto',
         'nama_pegawai',
         'jabatan',
         'ruangan',
@@ -39,7 +40,7 @@ class User extends Authenticatable
 
     public function setPasswordAttribute($value)
     {
-        $this->attributes['password'] = ($value); 
+        $this->attributes['password'] = ($value);
     }
 
     public function transaksi()

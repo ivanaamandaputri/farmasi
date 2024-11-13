@@ -74,12 +74,14 @@
                                     </form>
                                 </div>
                                 <div class="card-footer py-3 text-center">
-                                    <img src="{{ asset('img/logo.png') }}" alt="logo"
-                                        style="width: 100px; height: auto;">
-                                    <h6>Selamat Datang di SI Farmasi!</h6>
+                                    <img src="{{ asset('img/2.png') }}" alt="logo"
+                                        style="width: 100px; height: auto; transform: scale(2);">
+                                    <h6>Selamat Datang di SIFARMA !</h6>
                                     <p>Mari bersama membangun kesehatan masyarakat yang lebih baik dengan sistem yang
                                         terintegrasi</p>
                                 </div>
+
+
                             </div>
                         </div>
                     </div>
@@ -94,7 +96,7 @@
                     </div>
                 </div>
             </footer>
-        </div> 
+        </div>
     </div>
 
     <script>

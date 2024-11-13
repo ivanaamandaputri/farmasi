@@ -17,6 +17,8 @@
     <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
     <link rel="stylesheet" href="https://cdn.datatables.net/rowgroup/1.1.3/css/rowGroup.dataTables.min.css">
     <script src="https://cdn.datatables.net/rowgroup/1.1.3/js/dataTables.rowGroup.min.js"></script>
+    <!-- Include CKEditor -->
+    <script src="https://cdn.ckeditor.com/4.16.0/standard/ckeditor.js"></script>
 
     <style>
         .custom-card {
@@ -32,11 +34,15 @@
 
 <body class="sb-nav-fixed">
     <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
-        <!-- Navbar Brand-->
-        <a class="navbar-brand ps-3" href="#">SIFARMA</a>
+        <!-- Navbar Brand -->
+        <a class="navbar-brand ps-3" href="#">
+            <img src="{{ asset('img/1.png') }}" alt="Logo SIFARMA" style="height: 150px; width: auto;">
+        </a>
+
         <!-- Sidebar Toggle-->
         <button class="btn btn-link btn-sm order-lg-0 me-lg-0 order-1 me-4" id="sidebarToggle" href="#!"><i
                 class="fas fa-bars"></i></button>
+
         <!-- Navbar -->
         <ul class="navbar-nav ms-auto">
             <ul class="navbar-nav ms-md-0 me-lg-4 me-3 ms-auto">
@@ -46,6 +52,7 @@
                         <i class="fas fa-user fa-fw"></i>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="#!">Profil</a></li>
                         <li>
                             <a class="dropdown-item" href="#"
                                 onclick="event.preventDefault(); if(confirm('Apakah Anda yakin ingin keluar?')) { document.getElementById('logout-form').submit(); }">
@@ -96,7 +103,7 @@
                                 data-bs-target="#collapseMasterData" aria-expanded="false"
                                 aria-controls="collapseMasterData">
                                 <div class="sb-nav-link-icon"><i class="fas fa-database"></i></div>
-                                Master Data
+                                Data Master
                                 <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                             </a>
                             <div class="collapse" id="collapseMasterData" aria-labelledby="headingMasterData"
@@ -110,6 +117,12 @@
                                         <div class="sb-nav-link-icon"><i class="fas fa-pills"></i></div>
                                         Data Obat
                                     </a>
+                                    <a class="nav-link {{ request()->is('jenis_obat') ? 'active' : '' }}"
+                                        href="{{ route('jenis_obat.index') }}">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-pills"></i></div>
+                                        Jenis Obat
+                                    </a>
+
                                 </nav>
                             </div>
                             <a class="nav-link collapsed" href="#" data-bs-toggle="collapse"
@@ -125,7 +138,16 @@
                                     <a class="nav-link {{ request()->is('pengajuan') ? 'active' : '' }}"
                                         href="{{ route('pengajuan.order') }}">
                                         <div class="sb-nav-link-icon"><i class="fas fa-shopping-cart"></i></div>
-                                        Order Masuk
+                                        Permintaan
+                                    </a>
+                                    <a class="nav-link {{ request()->is('pembelian') ? 'active' : '' }}"
+                                        href=" ">
+                                        <div class="sb-nav-link-icon"><i class="fa fa-cart-plus"></i></div>
+                                        Tambah Stok Obat
+                                    </a>
+                                    <a class="nav-link {{ request()->is('retur') ? 'active' : '' }}" href="  ">
+                                        <div class="sb-nav-link-icon"><i class="fa fa-undo"></i></div>
+                                        Retur
                                     </a>
                                 </nav>
                             </div>

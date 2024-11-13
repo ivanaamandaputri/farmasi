@@ -2,68 +2,117 @@
 
 @section('content')
     <div class="container py-3">
-        <h4 class="card-title">Data Permintaan Obat</h4>
+        <h4 class="card-title">Data Permintaan Obat</h4><br>
+
+        <!-- Alert Section -->
         @if (session('success'))
             <div class="alert alert-success">
                 {{ session('success') }}
             </div>
         @endif
+
         <div class="card mb-4" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); border: none;">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table id="datatablesSimple" class="table-striped table-hover table">
+                    <table class="table">
                         <thead>
                             <tr>
-                                <th>No</th>
+                                <th></th>
                                 <th>Tanggal</th>
-                                <th>Nama Obat</th>
-                                <th>Dosis</th>
-                                <th>Jenis</th>
-                                <th>Jumlah</th>
-                                <th>Harga (Rp)</th>
-                                <th>Total (Rp)</th>
-                                <th>Nama Pemesan</th>
-                                <th>Ruangan</th>
-                                <th>Waktu Order</th>
-                                <th>Status</th>
-                                <th>Aksi</th>
+                                <th>Transaksi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($transaksi as $item)
+                            @foreach ($groupedTransaksi as $tanggal => $transaksiPerTanggal)
                                 <tr>
-                                    <td>{{ $loop->iteration }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($item->created_at)->format('d M Y') }}</td>
-                                    <td>{{ $item->obat->nama_obat }}</td>
-                                    <td>{{ $item->obat->dosis }}</td>
-                                    <td>{{ $item->obat->jenis }}</td>
-                                    <td>{{ $item->jumlah }}</td>
-                                    <td>{{ number_format($item->obat->harga, 0, ',', '.') }}</td>
-                                    <td>{{ number_format($item->total, 0, ',', '.') }}</td>
-                                    <td>{{ $item->user->nama_pegawai }}</td>
-                                    <td>{{ $item->user->ruangan }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($item->created_at)->format('H:i:s') }}</td>
                                     <td>
-                                        @if ($item->status === 'Disetujui')
-                                            <span class="badge badge-success">{{ $item->status }}</span>
-                                        @elseif ($item->status === 'Ditolak')
-                                            <span class="badge badge-danger">{{ $item->status }}</span>
-                                        @else
-                                            <span class="badge badge-warning">{{ $item->status }}</span>
-                                        @endif
+                                        <button class="btn btn-sm btn-primary toggle-collapse" data-bs-toggle="collapse"
+                                            data-bs-target="#collapse-{{ $tanggal }}">
+                                            +
+                                        </button>
                                     </td>
-                                    <td>
-                                        @if ($item->status === 'Disetujui' || $item->status === 'Ditolak')
-                                            @if ($item->status === 'Ditolak')
-                                                <button type="button" class="btn btn-sm btn-light view-reason-btn"
-                                                    data-reason="{{ $item->alasan_penolakan }}">Alasan</button>
-                                            @endif
-                                        @else
-                                            <button type="button" class="btn btn-sm btn-primary approve-btn"
-                                                data-id="{{ $item->id }}">Setuju</button>
-                                            <button type="button" class="btn btn-sm btn-danger reject-btn"
-                                                data-id="{{ $item->id }}">Tolak</button>
-                                        @endif
+                                    <td>{{ \Carbon\Carbon::parse($tanggal)->format('d M Y') }}</td>
+                                    <td>Lihat Transaksi</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3">
+                                        <div class="collapse" id="collapse-{{ $tanggal }}">
+                                            @foreach ($transaksiPerTanggal as $ruangan => $transaksiRuangan)
+                                                <div class="mb-2">
+                                                    <button class="btn btn-sm btn-secondary toggle-collapse"
+                                                        data-bs-toggle="collapse"
+                                                        data-bs-target="#collapse-ruangan-{{ $tanggal }}-{{ $loop->index }}">
+                                                        {{ $ruangan }}
+                                                    </button>
+                                                    <div class="collapse"
+                                                        id="collapse-ruangan-{{ $tanggal }}-{{ $loop->index }}">
+                                                        <table class="mt-2 table">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>No</th>
+                                                                    <th>Nama Obat</th>
+                                                                    <th>Dosis</th>
+                                                                    <th>Jenis</th>
+                                                                    <th>Jumlah</th>
+                                                                    <th>Acc</th>
+                                                                    <th>Harga (Rp)</th>
+                                                                    <th>Total (Rp)</th>
+                                                                    <th>Nama Pemesan</th>
+                                                                    <th>Waktu Order</th>
+                                                                    <th>Status</th>
+                                                                    <th>Aksi</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                @foreach ($transaksiRuangan as $transaksi)
+                                                                    <tr>
+                                                                        <td>{{ $loop->iteration }}</td>
+                                                                        <td>{{ $transaksi->obat->nama_obat }}</td>
+                                                                        <td>{{ $transaksi->obat->dosis }}</td>
+                                                                        <td>{{ $transaksi->obat->jenis }}</td>
+                                                                        <td>{{ $transaksi->jumlah }}</td>
+                                                                        <td>{{ $transaksi->acc }}</td>
+                                                                        <td>{{ number_format($transaksi->obat->harga, 0, ',', '.') }}
+                                                                        </td>
+                                                                        <td>{{ number_format($transaksi->total, 0, ',', '.') }}
+                                                                        </td>
+                                                                        <td>{{ $transaksi->user->nama_pegawai }}</td>
+                                                                        <td>{{ \Carbon\Carbon::parse($transaksi->created_at)->format('H:i:s') }}
+                                                                        </td>
+                                                                        <td>
+                                                                            @if ($transaksi->status === 'Disetujui')
+                                                                                <span
+                                                                                    class="badge bg-success">{{ $transaksi->status }}</span>
+                                                                            @elseif ($transaksi->status === 'Ditolak')
+                                                                                <span
+                                                                                    class="badge bg-danger">{{ $transaksi->status }}</span>
+                                                                            @else
+                                                                                <span
+                                                                                    class="badge bg-warning">{{ $transaksi->status }}</span>
+                                                                            @endif
+                                                                        </td>
+                                                                        <td>
+                                                                            @if ($transaksi->status === 'Ditolak')
+                                                                                <button type="button"
+                                                                                    class="btn btn-sm btn-light view-reason-btn"
+                                                                                    data-reason="{{ $transaksi->alasan_penolakan }}">Alasan</button>
+                                                                            @elseif ($transaksi->status === 'Menunggu')
+                                                                                <button type="button"
+                                                                                    class="btn btn-sm btn-primary approve-btn"
+                                                                                    data-id="{{ $transaksi->id }}">Setujui</button>
+                                                                                <button type="button"
+                                                                                    class="btn btn-sm btn-danger reject-btn"
+                                                                                    data-id="{{ $transaksi->id }}">Tolak</button>
+                                                                            @endif
+                                                                        </td>
+                                                                    </tr>
+                                                                @endforeach
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -74,19 +123,50 @@
         </div>
     </div>
 
-    <!-- Modal Konfirmasi Setuju -->
-    <div class="modal fade" id="confirmApproveModal" tabindex="-1" aria-labelledby="confirmApproveModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
+    <!-- Modal Alasan Penolakan -->
+    <div class="modal fade" id="reasonModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Konfirmasi Persetujuan</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title">Alasan Penolakan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">Apakah Anda yakin ingin menyetujui transaksi ini?</div>
+                <div class="modal-body">
+                    <p id="reasonText"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Konfirmasi Setuju -->
+    <div class="modal fade" id="confirmApproveModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Konfirmasi Persetujuan</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>Nama Obat:</strong> <span id="modalNamaObat"></span></li>
+                        <li class="list-group-item"><strong>Dosis:</strong> <span id="modalDosis"></span></li>
+                        <li class="list-group-item"><strong>Jenis:</strong> <span id="modalJenis"></span></li>
+                        <li class="list-group-item"><strong>Jumlah:</strong> <span id="modalJumlah"></span></li>
+                        <li class="list-group-item"><strong>Harga:</strong> <span id="modalHarga"></span></li>
+                        <li class="list-group-item"><strong>Total:</strong> <span id="modalTotal"></span></li>
+                        <li class="list-group-item"><strong>Nama Pegawai:</strong> <span id="modalPegawai"></span></li>
+                        <li class="list-group-item"><strong>Ruangan:</strong> <span id="modalRuangan"></span></li>
+                        <li class="list-group-item"><strong>Tanggal:</strong> <span id="modalTanggal"></span></li>
+                    </ul>
+                    <div class="mt-3">
+                        <label for="jumlahAcc" class="form-label">Jumlah ACC</label>
+                        <input type="number" class="form-control" id="jumlahAcc" min="1" required>
+                        <small id="errorAcc" class="text-danger">Jumlah ACC tidak valid.</small>
+                    </div>
+                </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-warning" id="confirmApproveButton">Setuju</button>
+                    <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="confirmApproveButton">Setujui</button>
                 </div>
             </div>
         </div>
@@ -98,12 +178,15 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Konfirmasi Penolakan</h5>
+                    <h5 class="modal-title">Apakah yakin ingin menolak?</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    Apakah Anda yakin ingin menolak transaksi ini?
-                    <textarea class="form-control" id="rejectReason" rows="3" placeholder="Masukkan alasan"></textarea>
+                    <div class="form-group">
+                        <label for="rejectReason">Silakan isi alasan penolakan:</label>
+                        <textarea class="form-control" id="rejectReason" rows="3" placeholder="Masukkan alasan"></textarea>
+                        <small class="text-danger" id="errorReason">Alasan penolakan harus diisi</small>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -113,105 +196,51 @@
         </div>
     </div>
 
-    <!-- Modal Alasan Penolakan -->
-    <div class="modal fade" id="reasonModal" tabindex="-1" aria-labelledby="reasonModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Alasan Penolakan</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p id="reasonText"></p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast / Alert Konfirmasi -->
-    <div id="confirmationToast" class="toast" role="alert" style="position: fixed; top: 20px; right: 20px;">
-        <div class="toast-body">
-            <span id="toastMessage"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-    </div>
-
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
     <script>
-        let transactionId;
+        $(document).ready(function() {
+            // Tombol untuk melihat alasan penolakan
+            $('.view-reason-btn').on('click', function() {
+                const reason = $(this).data('reason');
+                $('#reasonText').text(reason);
+                $('#reasonModal').modal('show');
+            });
 
-        function showToast(message) {
-            $('#toastMessage').text(message);
-            const toast = new bootstrap.Toast($('#confirmationToast'));
-            toast.show();
-        }
+            // Tombol untuk Setujui
+            $('.approve-btn').on('click', function() {
+                const id = $(this).data('id');
+                // Dapatkan data obat terkait (gunakan AJAX atau sesuai kebutuhan)
+                $('#confirmApproveModal').modal('show');
+            });
 
-        $(document).on('click', '.approve-btn', function() {
-            transactionId = $(this).data('id');
-            $('#confirmApproveModal').modal('show');
-        });
+            // Tombol untuk Tolak
+            $('.reject-btn').on('click', function() {
+                const id = $(this).data('id');
+                $('#confirmRejectModal').modal('show');
+            });
 
-        $('#confirmApproveButton').on('click', function() {
-            $.ajax({
-                url: `/transaksi/approve/${transactionId}`,
-                method: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}'
-                },
-                success: function(response) {
-                    showToast(response.message); // Menampilkan pesan sukses
-                    setTimeout(() => location.reload(),
-                        2000); // Reload halaman setelah menampilkan toast
-                },
-                error: function(xhr) {
-                    showToast(xhr.responseJSON.error); // Menampilkan pesan error jika ada
+            // Konfirmasi Setujui
+            $('#confirmApproveButton').on('click', function() {
+                const jumlahAcc = $('#jumlahAcc').val();
+                if (jumlahAcc > 0) {
+                    // Kirim permintaan ke server untuk setujui transaksi
+                    // Gunakan AJAX atau form submission sesuai kebutuhan
+                    $('#confirmApproveModal').modal('hide');
+                } else {
+                    $('#errorAcc').show();
                 }
             });
-            $('#confirmApproveModal').modal('hide');
-        });
 
-        $(document).on('click', '.reject-btn', function() {
-            transactionId = $(this).data('id');
-            $('#confirmRejectModal').modal('show');
-        });
-
-        $('#confirmRejectButton').on('click', function() {
-            const reason = $('#rejectReason').val();
-            if (!reason) {
-                alert('Alasan penolakan harus diisi');
-                return;
-            }
-
-            $.ajax({
-                url: `/transaksi/reject/${transactionId}`,
-                method: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    alasan: reason
-                },
-                success: function(response) {
-                    showToast(response.message); // Menampilkan pesan sukses
-                    setTimeout(() => location.reload()); // Reload halaman setelah menampilkan toast
-                },
-                error: function(xhr) {
-                    showToast(xhr.responseJSON.error); // Menampilkan pesan error jika ada
+            // Konfirmasi Tolak
+            $('#confirmRejectButton').on('click', function() {
+                const alasan = $('#rejectReason').val();
+                if (alasan.trim() !== '') {
+                    // Kirim permintaan untuk menolak dengan alasan
+                    $('#confirmRejectModal').modal('hide');
+                } else {
+                    $('#errorReason').show();
                 }
             });
-            $('#confirmRejectModal').modal('hide');
-        });
-
-        $(document).on('click', '.view-reason-btn', function() {
-            const reason = $(this).data('reason');
-            $('#reasonText').text(reason);
-            $('#reasonModal').modal('show');
         });
     </script>
-
-    <style>
-        .card {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            /* Kesan timbul 3D */
-        }
-    </style>
 @endsection

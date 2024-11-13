@@ -23,8 +23,7 @@
                         <h5 class="badge bg-secondary p-2" style="font-size: 1.0rem;">{{ $obat->nama_obat }}</h5>
                         <ul class="list-group list-group-flush mt-3">
                             <li class="list-group-item"><strong>Dosis:</strong> {{ $obat->dosis }}</li>
-                            <li class="list-group-item"><strong>Jenis:</strong>
-                                {{ $obat->jenisObat->nama_jenis ?? 'Tidak Ditemukan' }}</li>
+                            <li class="list-group-item"><strong>Jenis:</strong> {{ $obat->jenis }}</li>
                             <li class="list-group-item">
                                 <strong>Stok:</strong> {{ number_format($obat->stok, 0, ',', '.') }}
                                 @if ($obat->stok == 0)
@@ -46,7 +45,7 @@
             </div>
         </div>
 
-        <a href="{{ route('obat.index') }}" class="btn btn-primary mt-3">Kembali</a>
+        <a href="{{ route('operator.dataobat') }}" class="btn btn-primary mt-3">Kembali</a>
 
     </div>
     <script>

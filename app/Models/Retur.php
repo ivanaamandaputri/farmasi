@@ -5,22 +5,26 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Transaksi extends Model
+class Retur extends Model
 {
     use HasFactory;
 
-    protected $table = 'transaksi';
+    protected $table = 'retur';
 
     protected $fillable = [
+        'transaksi_id',
         'obat_id',
         'user_id',
+        'password',
         'jumlah',
-        'total',
-        'status',
-        'alasan_penolakan',
-        'tanggal',
-        'acc'
+        'alasan_retur',
+        'status'
     ];
+
+    public function transaksi()
+    {
+        return $this->belongsTo(Transaksi::class);
+    }
 
     public function obat()
     {

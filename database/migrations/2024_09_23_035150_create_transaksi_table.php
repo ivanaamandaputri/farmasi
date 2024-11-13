@@ -14,12 +14,16 @@ return new class extends Migration
         Schema::create('transaksi', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('obat_id');
+            $table->unsignedBigInteger('jenis_obat_id')->nullable();
             $table->unsignedBigInteger('user_id');
             $table->integer('jumlah');
             $table->integer('total');
+            $table->date('tanggal');
+            $table->integer('acc')->default(0);
             $table->string('status')->default('Pengajuan');
             $table->string('alasan_penolakan')->nullable();
             $table->foreign('obat_id')->references('id')->on('obat');
+            $table->foreign('jenis_obat_id')->references('id')->on('jenis_obat');
             $table->foreign('user_id')->references('id')->on('user');
             $table->timestamps();
         });

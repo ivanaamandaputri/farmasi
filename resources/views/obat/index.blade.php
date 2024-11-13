@@ -19,14 +19,15 @@
         <div class="card mb-4">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table id="datatablesSimple" class="table-striped table-hover table">
+                    <table id="datatablesSimple" class="table-hover table">
                         <thead>
                             <tr>
                                 <th>ID</th>
                                 <th>Nama Obat</th>
                                 <th>Dosis</th>
                                 <th>Jenis</th>
-                                <th>Harga</th>
+                                <th>Harga (Rp)</th>
+                                <th>Exp</th>
                                 <th>Stok</th>
                                 <th>Aksi</th>
                             </tr>
@@ -37,10 +38,20 @@
                                     <td>{{ $loop->iteration }}</td>
                                     <td>{{ $item->nama_obat }}</td>
                                     <td>{{ $item->dosis }}</td>
-                                    <td>{{ $item->jenis }}</td>
-                                    <td>{{ $item->harga }}</td>
+                                    <td>{{ $item->jenisObat->nama_jenis ?? 'Tidak Ditemukan' }}</td>
+                                    <td>{{ number_format($item->harga, 0, ',', '.') }}</td>
                                     <td>
-                                        {{ $item->stok }}
+                                        {{ $item->exp? \Carbon\Carbon::parse($item->exp)->locale('id')->translatedFormat('j M Y'): 'Tanggal tidak tersedia' }}
+                                        @if ($item->expWarning)
+                                            <span
+                                                class="badge {{ $item->expWarning == 'Sudah Kedaluwarsa' ? 'badge-danger' : 'badge-warning' }}">
+                                                {{ $item->expWarning }}
+                                            </span>
+                                        @endif
+                                    </td>
+
+                                    <td>
+                                        {{ number_format($item->stok, 0, ',', '.') }}
                                         @if ($item->stok == 0)
                                             <span class="badge badge-danger">
                                                 {{ auth()->user()->level == 'admin' ? 'Stok Habis, Restok Segera!' : 'Stok Habis!' }}
@@ -54,11 +65,10 @@
 
 
                                     <td>
-                                        @if ($readOnly)
-                                            <!-- Jika operator, hanya tampilkan Lihat Detail -->
-                                            <a href="{{ route('obat.show', $item->id) }}" class="btn btn-info">Lihat
-                                                Detail</a>
-                                        @else
+                                        <!-- Tombol Detail untuk semua pengguna -->
+                                        <a href="{{ route('obat.show', $item->id) }}" class="btn btn-info">Detail</a>
+
+                                        @if (!$readOnly)
                                             <a href="{{ route('obat.edit', $item->id) }}" class="btn btn-warning">Edit</a>
                                             <form action="{{ route('obat.destroy', $item->id) }}" method="POST"
                                                 style="display:inline;">

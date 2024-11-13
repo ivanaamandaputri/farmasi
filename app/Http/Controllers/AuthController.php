@@ -24,9 +24,14 @@ class AuthController extends Controller
 
         // Coba untuk login
         if (Auth::attempt($credentials)) {
-            // Redirect ke dashboard yang sesuai berdasarkan level user
-            return redirect()->route(Auth::user()->level == 'admin' ? 'dashboard' : 'dashboard.operator')
-                ->with('success', 'Login berhasil!'); // Pesan sukses
+            $request->session()->regenerate(); // Regenerate session untuk keamanan
+
+            // Redirect ke dashboard yang sesuai berdasarkan level pengguna
+            if (Auth::user()->level == 'admin') {
+                return redirect()->route('dashboard')->with('success', 'Login berhasil!');
+            } elseif (Auth::user()->level == 'operator') {
+                return redirect()->route('dashboard.operator')->with('success', 'Login berhasil!');
+            }
         }
 
         // Jika login gagal

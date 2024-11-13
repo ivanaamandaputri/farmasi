@@ -37,25 +37,53 @@
                                     <td>{{ $item->nama_pegawai }}</td>
                                     <td>{{ $item->jabatan }}</td>
                                     <td>{{ $item->ruangan }}</td>
-                                    <td>{{ $item->level }}</td>
                                     <td>
-                                        <a href="{{ route('user.edit', $item->id) }}" class="btn btn-warning">Edit</a>
+                                        @if ($item->level == 'admin')
+                                            <span class="badge bg-success">{{ $item->level }}</span>
+                                        @elseif($item->level == 'operator')
+                                            <span class="badge bg-secondary">{{ $item->level }}</span>
+                                        @else
+                                            <span class="badge bg-secondary">{{ $item->level }}</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <!-- Tombol Detail dengan gaya yang sama -->
+                                        <a href="{{ route('user.show', $item->id) }}" class="btn btn-info btn">Detail</a>
+                                        <!-- Tombol Edit -->
+                                        <a href="{{ route('user.edit', $item->id) }}" class="btn btn-warning btn">Edit</a>
+                                        <!-- Form Hapus -->
                                         <form action="{{ route('user.destroy', $item->id) }}" method="POST"
                                             style="display:inline;">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-danger"
+                                            <button type="submit" class="btn btn-danger btn"
                                                 onclick="return confirm('Apakah yakin ingin menghapus?')">Hapus</button>
                                         </form>
                                     </td>
                                 </tr>
                             @endforeach
+
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
+
+    <style>
+        /* Mengatur ukuran lingkaran dan memastikan gambar tidak peyang */
+        .custom-photo {
+            width: 200px;
+            /* Ukuran lingkaran lebih besar */
+            height: 200px;
+            /* Ukuran lingkaran lebih besar */
+            object-fit: cover;
+            /* Gambar akan menyesuaikan dengan frame */
+            border-radius: 50%;
+            /* Membuat gambar menjadi lingkaran */
+        }
+    </style>
+
     <style>
         .card {
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
@@ -39,6 +40,7 @@ class UserController extends Controller
             'nama_pegawai' => 'required|string|max:255',
             'jabatan' => 'required|string',
             'ruangan' => 'required|string',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Foto (optional)
         ], [
             'nip.required' => 'NIP harus diisi',
             'nip.unique' => 'NIP sudah terdaftar',
@@ -50,6 +52,12 @@ class UserController extends Controller
             'ruangan.required' => 'Ruangan harus dipilih',
         ]);
 
+        // Menangani upload foto jika ada
+        $fotoPath = null;
+        if ($request->hasFile('foto') && $request->file('foto')->isValid()) {
+            $fotoPath = $request->foto->store('images/users', 'public'); // Menyimpan foto di folder public/images/users
+        }
+
         // Simpan data user
         User::create([
             'nip' => $request->nip,
@@ -58,12 +66,12 @@ class UserController extends Controller
             'nama_pegawai' => $request->nama_pegawai,
             'jabatan' => $request->jabatan,
             'ruangan' => $request->ruangan,
+            'foto' => $fotoPath, // Menyimpan path foto
         ]);
 
         // Redirect dengan pesan sukses
         return redirect()->route('user.index')->with('success', 'Data berhasil disimpan.');
     }
-
 
     /**
      * Display the specified resource.
@@ -86,34 +94,51 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        // Validasi input
         $request->validate([
-            'nip' => 'required|string|unique:user,nip,' . $id,
-            'password' => 'nullable|string|min:6',
-            'level' => 'required|string|in:admin,operator',
-            'nama_pegawai' => 'required|string|max:255',
-            'jabatan' => 'required|string',
-            'ruangan' => 'required|string',
+            'nip' => 'required',
+            'nama_pegawai' => 'required',
+            'jabatan' => 'required',
+            'ruangan' => 'required',
+            'level' => 'required',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validasi gambar
         ]);
 
-
-        // Update data user
         $user = User::findOrFail($id);
-        $user->nip = $request->nip;
-        if ($request->password) {
-            $user->password = bcrypt($request->password);
+
+        // Proses upload gambar jika ada
+        if ($request->hasFile('foto')) {
+            // Hapus gambar lama jika ada
+            if ($user->foto) {
+                Storage::delete('public/' . $user->foto);
+            }
+
+            // Upload gambar baru
+            $filePath = $request->file('foto')->store('users', 'public'); // Menyimpan di folder 'storage/app/public/users'
+
+            // Simpan nama file ke dalam kolom foto
+            $user->foto = basename($filePath); // Simpan hanya nama file saja
         }
-        $user->level = $request->level;
+
+        // Update data pengguna lainnya
+        $user->nip = $request->nip;
         $user->nama_pegawai = $request->nama_pegawai;
         $user->jabatan = $request->jabatan;
         $user->ruangan = $request->ruangan;
+        $user->level = $request->level;
+
+        // Jika password diubah
+        if ($request->password) {
+            $user->password = bcrypt($request->password);
+        }
+
+        // Simpan perubahan
         $user->save();
 
-        // Redirect ke halaman index dengan pesan sukses
-        return redirect()->route('user.index')->with('success', 'User berhasil diperbarui');
+        return redirect()->route('user.index')->with('success', 'Pengguna berhasil diperbarui');
     }
+
 
     /**
      * Remove the specified resource from storage.

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('nip')->unique();
             $table->string('password');
             $table->enum('level', ['admin', 'operator'])->default('admin');
+            $table->string('foto')->nullable();
             $table->string('nama_pegawai');
             $table->enum('jabatan', ['Kepala Apotik', 'Apoteker', 'Staf']);
             $table->enum('ruangan', [
