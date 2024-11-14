@@ -58,7 +58,7 @@
                                                             <td>{{ $number++ }}</td>
                                                             <td>{{ $item->obat->nama_obat }}</td>
                                                             <td>{{ $item->obat->dosis }}</td>
-                                                            <td>{{ $item->obat->jenis }}</td>
+                                                            <td>{{ $item->obat->jenisObat->nama_jenis }}</td>
                                                             <td>{{ number_format($item->jumlah, 0, ',', '.') }}</td>
                                                             <td>{{ optional($item->transaksi)->acc ?? '' }}</td>
                                                             <td>{{ number_format($item->obat->harga, 0, ',', '.') }}</td>

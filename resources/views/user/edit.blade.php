@@ -14,11 +14,11 @@
                         <!-- Left Column for Photo -->
                         <div class="col-md-4 text-center">
                             <div class="form-group">
-                                <label for="foto">Foto</label>
+                                <label for="foto"></label>
                                 <!-- Display current photo if exists -->
                                 <div>
                                     @if ($user->foto)
-                                        <img src="{{ asset('storage/' . $user->foto) }}" alt="Foto User"
+                                        <img src="{{ asset('storage/user/' . $user->foto) }}" alt="Foto User"
                                             class="img-fluid custom-photo mt-2" width="200">
                                     @else
                                         <img src="https://via.placeholder.com/150" alt="Foto tidak tersedia"
@@ -116,8 +116,8 @@
             /* Ukuran lingkaran lebih besar */
             object-fit: cover;
             /* Gambar akan menyesuaikan dengan frame */
-            border-radius: 50%;
-            /* Membuat gambar menjadi lingkaran */
+            border-radius: 15px;
+            /* Membuat gambar menjadi persegi tumpul */
         }
     </style>
 

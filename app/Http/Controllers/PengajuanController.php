@@ -44,71 +44,79 @@ class PengajuanController extends Controller
      */
     public function approve(Request $request, $id)
     {
-        // Mencari transaksi berdasarkan ID
-        $transaksi = Transaksi::findOrFail($id);
-        $obat = $transaksi->obat;
+        try {
+            // Mencari transaksi berdasarkan ID
+            $transaksi = Transaksi::findOrFail($id);
 
-        // Validasi input untuk acc (jumlah yang disetujui)
-        $request->validate([
-            'acc' => 'required|integer|min:1|max:' . $obat->stok,
-        ]);
+            // Pastikan data ACC ada dalam request
+            $acc = $request->input('acc');
 
-        // Menyimpan nilai acc dari request
-        $acc = $request->input('acc');
+            if (!$acc || $acc <= 0) {
+                return response()->json(['error' => 'Jumlah ACC tidak valid.'], 400);
+            }
 
-        // Memastikan transaksi belum disetujui
-        if ($transaksi->status === 'Disetujui') {
-            return response()->json(['error' => 'Transaksi sudah disetujui'], 400);
+            // Pastikan jumlah ACC tidak melebihi jumlah yang diminta
+            if ($acc > $transaksi->jumlah) {
+                return response()->json(['error' => 'Jumlah ACC tidak boleh lebih besar dari jumlah permintaan.'], 400);
+            }
+
+            // Proses transaksi dan update data
+            $total = $acc * $transaksi->harga; // Menghitung total berdasarkan ACC * harga
+            $transaksi->acc = $acc;
+            $transaksi->status = 'Disetujui';
+            $transaksi->total = $total; // Menyimpan total yang sudah dihitung
+            $transaksi->save();
+
+            // Update stok jika diperlukan
+            $obat = $transaksi->obat;
+            $obat->stok -= $acc;  // Mengurangi stok sesuai jumlah ACC yang disetujui
+            $obat->save();
+
+            // Opsional: Log atau notifikasi disetujui
+            // Log::info("Transaksi $transaksi->id disetujui dengan ACC: $acc");
+
+            return response()->json(['message' => 'Transaksi disetujui dan stok berkurang.'], 200);
+        } catch (\Exception $e) {
+            // Menangani error jika terjadi
+            // Log::error("Terjadi kesalahan saat memproses transaksi: " . $e->getMessage());
+
+            return response()->json(['error' => 'Terjadi kesalahan saat memproses transaksi.'], 500);
         }
-
-        // Memastikan stok cukup untuk transaksi
-        if ($acc > $obat->stok) {
-            return response()->json(['error' => 'Stok tidak cukup untuk menyetujui transaksi ini.'], 400);
-        }
-
-        // Menggunakan DB transaction untuk menjaga integritas data
-        DB::transaction(function () use ($transaksi, $obat, $acc) {
-            // Memperbarui status transaksi dan informasi lainnya
-            $transaksi->update([
-                'total' => $acc * $obat->harga,  // Menghitung total berdasarkan jumlah yang disetujui
-                'status' => 'Disetujui',          // Memperbarui status transaksi
-                'acc' => $acc,                    // Menyimpan jumlah yang disetujui
-            ]);
-
-            // Mengurangi stok obat sesuai jumlah yang disetujui
-            $obat->decrement('stok', $acc);
-        });
-
-        // Logging informasi transaksi yang disetujui
-        Log::info("Transaksi ID {$id} disetujui oleh user ID " . Auth::id());
-
-        // Mengembalikan respon sukses
-        return response()->json(['message' => 'Transaksi disetujui dan stok berkurang.']);
     }
 
 
-    /**
-     * Menolak transaksi.
-     */
+
     public function reject(Request $request, $id)
     {
+        // Validasi alasan penolakan
         $request->validate([
             'reason' => 'required|string|max:255',
         ]);
 
-        $transaksi = Transaksi::findOrFail($id);
+        try {
+            // Temukan transaksi berdasarkan ID
+            $transaksi = Transaksi::findOrFail($id);
 
-        if ($transaksi->status === 'Ditolak') {
-            return response()->json(['error' => 'Transaksi sudah ditolak.'], 400);
+            // Periksa apakah transaksi sudah ditolak sebelumnya
+            if ($transaksi->status === 'Ditolak') {
+                return response()->json(['error' => 'Transaksi sudah ditolak.'], 400);
+            }
+
+            // Perbarui status transaksi menjadi 'Ditolak' dan simpan alasan penolakan
+            $transaksi->update([
+                'status' => 'Ditolak',
+                'alasan_penolakan' => $request->input('reason'),
+            ]);
+
+            // Optionally, log the rejection or notify users here
+            // Log::info("Transaksi $transaksi->id ditolak. Alasan: " . $request->input('reason'));
+
+            return response()->json(['success' => 'Transaksi berhasil ditolak.'], 200);
+        } catch (\Exception $e) {
+            // Log the exception for debugging purposes
+            // Log::error("Terjadi kesalahan saat menolak transaksi: " . $e->getMessage());
+
+            return response()->json(['error' => 'Terjadi kesalahan saat memproses penolakan transaksi.'], 500);
         }
-
-        $transaksi->update([
-            'status' => 'Ditolak',
-            'alasan_penolakan' => $request->reason,
-        ]);
-
-        Log::info("Transaksi ID {$id} ditolak oleh user ID " . Auth::id() . " dengan alasan: " . $request->reason);
-
-        return response()->json(['message' => 'Transaksi berhasil ditolak.']);
     }
 }

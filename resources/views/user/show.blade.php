@@ -12,8 +12,8 @@
                     <div class="col-md-4 text-center">
                         @if ($user->foto)
                             <!-- Tampilkan gambar dengan lingkaran yang lebih besar -->
-                            <img src="{{ asset('storage/' . $user->foto) }}" alt="Foto User" class="img-fluid custom-photo"
-                                style="width: 200px; height: 200px; object-fit: cover;">
+                            <img src="{{ asset('storage/user/' . $user->foto) }}" alt="Foto User"
+                                class="img-fluid custom-photo" style="width: 200px; height: 200px; object-fit: cover;">
                         @else
                             <img src="https://via.placeholder.com/200" alt="No Foto" class="img-fluid custom-photo"
                                 style="width: 200px; height: 200px; object-fit: cover;">
@@ -23,31 +23,31 @@
                     <!-- Kolom Inputan (kanan) -->
                     <div class="col-md-8">
                         <div class="form-group row">
-                            <label for="nip" class="col-sm-4 col-form-label">NIP</label>
+                            <label for="nip" class="col-sm-4 col-form-label font-weight-bold">NIP</label>
                             <div class="col-sm-8">
                                 <input type="text" class="form-control" value="{{ $user->nip }}" disabled>
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="nama_pegawai" class="col-sm-4 col-form-label">Nama Pegawai</label>
+                            <label for="nama_pegawai" class="col-sm-4 col-form-label font-weight-bold">Nama Pegawai</label>
                             <div class="col-sm-8">
                                 <input type="text" class="form-control" value="{{ $user->nama_pegawai }}" disabled>
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="jabatan" class="col-sm-4 col-form-label">Jabatan</label>
+                            <label for="jabatan" class="col-sm-4 col-form-label font-weight-bold">Jabatan</label>
                             <div class="col-sm-8">
                                 <input type="text" class="form-control" value="{{ $user->jabatan }}" disabled>
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="ruangan" class="col-sm-4 col-form-label">Ruangan</label>
+                            <label for="ruangan" class="col-sm-4 col-form-label font-weight-bold">Ruangan</label>
                             <div class="col-sm-8">
                                 <input type="text" class="form-control" value="{{ $user->ruangan }}" disabled>
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="level" class="col-sm-4 col-form-label">Level</label>
+                            <label for="level" class="col-sm-4 col-form-label font-weight-bold">Level</label>
                             <div class="col-sm-8">
                                 <input type="text" class="form-control" value="{{ $user->level }}" disabled>
                             </div>

@@ -46,11 +46,31 @@
         <!-- Navbar -->
         <ul class="navbar-nav ms-auto">
             <ul class="navbar-nav ms-md-0 me-lg-4 me-3 ms-auto">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-user fa-fw"></i>
+                <li class="nav-item dropdown d-flex align-items-center"> <!-- Menggunakan Flexbox untuk penyusunan -->
+                    <!-- Foto Profil -->
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" id="navbarDropdown" href="#"
+                        role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="avatar-sm me-2">
+                            @if (Auth::user()->foto)
+                                <!-- Menampilkan gambar profil yang diupload -->
+                                <img src="{{ asset('storage/user/' . Auth::user()->foto) }}" alt="User Avatar"
+                                    class="avatar-img rounded-circle"
+                                    style="width: 35px; height: 35px; object-fit: cover;" />
+                            @else
+                                <!-- Menampilkan gambar default jika foto belum diupload -->
+                                <img src="{{ asset('img/profil.jpg') }}" alt="Default Avatar"
+                                    class="avatar-img rounded-circle"
+                                    style="width: 35px; height: 35px; object-fit: cover;" />
+                            @endif
+                        </div>
+                        <!-- Nama dan Jabatan -->
+                        <div class="profile-username d-flex flex-column" style="color: rgba(255, 255, 255, 0.8);">
+                            <!-- Menggunakan rgba untuk efek redup -->
+                            <span class="fw-bold" style="font-size: 14px">{{ Auth::user()->nama_pegawai }}</span>
+                            <small style="font-size: 12px">{{ Auth::user()->jabatan }}</small>
+                        </div>
                     </a>
+                    <!-- Dropdown -->
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="#!">Profil</a></li>
                         <li>
@@ -63,7 +83,6 @@
                 </li>
             </ul>
         </ul>
-
         <!-- Form Logout -->
         <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
             @csrf
@@ -143,7 +162,7 @@
                                     <a class="nav-link {{ request()->is('pembelian') ? 'active' : '' }}"
                                         href=" ">
                                         <div class="sb-nav-link-icon"><i class="fa fa-cart-plus"></i></div>
-                                        Tambah Stok Obat
+                                        Stok Obat
                                     </a>
                                     <a class="nav-link {{ request()->is('retur') ? 'active' : '' }}" href="  ">
                                         <div class="sb-nav-link-icon"><i class="fa fa-undo"></i></div>

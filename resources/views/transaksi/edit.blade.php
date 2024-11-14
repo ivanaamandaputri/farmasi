@@ -56,10 +56,11 @@
                                         <select name="obat_id" class="form-control" required id="obat_id">
                                             @foreach ($obat as $item)
                                                 <option value="{{ $item->id }}" data-harga="{{ $item->harga }}"
-                                                    data-dosis="{{ $item->dosis }}" data-jenis="{{ $item->jenis }}"
+                                                    data-dosis="{{ $item->dosis }}"
+                                                    data-jenis="{{ $item->jenisObat->nama_jenis }}"
                                                     data-stok="{{ $item->stok }}" data-exp="{{ $item->exp }}"
                                                     data-keterangan="{{ $item->keterangan }}"
-                                                    data-foto="{{ asset('path/to/images/' . $item->foto) }}"
+                                                    data-foto="{{ asset('storage/obat/' . $item->foto) }}"
                                                     {{ $item->id == $transaksi->obat_id ? 'selected' : '' }}>
                                                     {{ $item->nama_obat }}
                                                 </option>

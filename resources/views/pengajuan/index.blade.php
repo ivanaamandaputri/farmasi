@@ -10,7 +10,15 @@
                 {{ session('success') }}
             </div>
         @endif
-
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
         <div class="card mb-4" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); border: none;">
             <div class="card-body">
                 <div class="table-responsive">
@@ -69,7 +77,8 @@
                                                                         <td>{{ $loop->iteration }}</td>
                                                                         <td>{{ $transaksi->obat->nama_obat }}</td>
                                                                         <td>{{ $transaksi->obat->dosis }}</td>
-                                                                        <td>{{ $transaksi->obat->jenis }}</td>
+                                                                        <td>{{ $transaksi->obat->jenisObat->nama_jenis }}
+                                                                        </td>
                                                                         <td>{{ $transaksi->jumlah }}</td>
                                                                         <td>{{ $transaksi->acc }}</td>
                                                                         <td>{{ number_format($transaksi->obat->harga, 0, ',', '.') }}
@@ -147,21 +156,9 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item"><strong>Nama Obat:</strong> <span id="modalNamaObat"></span></li>
-                        <li class="list-group-item"><strong>Dosis:</strong> <span id="modalDosis"></span></li>
-                        <li class="list-group-item"><strong>Jenis:</strong> <span id="modalJenis"></span></li>
-                        <li class="list-group-item"><strong>Jumlah:</strong> <span id="modalJumlah"></span></li>
-                        <li class="list-group-item"><strong>Harga:</strong> <span id="modalHarga"></span></li>
-                        <li class="list-group-item"><strong>Total:</strong> <span id="modalTotal"></span></li>
-                        <li class="list-group-item"><strong>Nama Pegawai:</strong> <span id="modalPegawai"></span></li>
-                        <li class="list-group-item"><strong>Ruangan:</strong> <span id="modalRuangan"></span></li>
-                        <li class="list-group-item"><strong>Tanggal:</strong> <span id="modalTanggal"></span></li>
-                    </ul>
                     <div class="mt-3">
                         <label for="jumlahAcc" class="form-label">Jumlah ACC</label>
                         <input type="number" class="form-control" id="jumlahAcc" min="1" required>
-                        <small id="errorAcc" class="text-danger">Jumlah ACC tidak valid.</small>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -177,7 +174,7 @@
         aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title">Apakah yakin ingin menolak?</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -185,11 +182,10 @@
                     <div class="form-group">
                         <label for="rejectReason">Silakan isi alasan penolakan:</label>
                         <textarea class="form-control" id="rejectReason" rows="3" placeholder="Masukkan alasan"></textarea>
-                        <small class="text-danger" id="errorReason">Alasan penolakan harus diisi</small>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">Batal</button>
                     <button type="button" class="btn btn-danger" id="confirmRejectButton">Tolak</button>
                 </div>
             </div>
@@ -241,6 +237,33 @@
                     $('#errorReason').show();
                 }
             });
+        });
+
+        $('#confirmRejectButton').on('click', function() {
+            const alasan = $('#rejectReason').val();
+            if (alasan.trim() !== '') {
+                // Send the rejection reason to the server via AJAX
+                $.ajax({
+                    url: '/transaksi/reject/' + transaksiId, // Use the correct URL
+                    method: 'POST',
+                    data: {
+                        reason: alasan,
+                        _token: '{{ csrf_token() }}',
+                    },
+                    success: function(response) {
+                        // Close the modal and update UI
+                        $('#confirmRejectModal').modal('hide');
+                        alert(response.success);
+                        location.reload(); // Optionally, refresh the page to see the updated status
+                    },
+                    error: function(xhr) {
+                        // Handle error (e.g., show an error message)
+                        alert(xhr.responseJSON.error);
+                    }
+                });
+            } else {
+                $('#errorReason').show();
+            }
         });
     </script>
 @endsection

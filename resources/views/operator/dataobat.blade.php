@@ -33,7 +33,7 @@
                                     <td>{{ $loop->iteration }}</td>
                                     <td>{{ $item->nama_obat }}</td>
                                     <td>{{ $item->dosis }}</td>
-                                    <td>{{ $item->jenis }}</td>
+                                    <td>{{ $item->jenisObat->nama_jenis }}</td>
                                     <td>{{ $item->harga }}</td>
                                     <td>
                                         {{ $item->stok }}

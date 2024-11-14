@@ -6,6 +6,7 @@ use App\Models\Obat;
 use App\Models\JenisObat; // Import model JenisObat
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ObatController extends Controller
 {
@@ -39,7 +40,7 @@ class ObatController extends Controller
         }
 
         $jenisObat = JenisObat::all(); // Ambil data jenis obat
-        $readOnly = auth()->user()->level === 'operator'; // true jika operator, false jika admin
+        $readOnly = auth()->User()->level === 'operator'; // true jika operator, false jika admin
 
         return view('obat.index', compact('obat', 'readOnly', 'jenisObat')); // Mengirim data jenisObat
     }
@@ -77,8 +78,25 @@ class ObatController extends Controller
             return redirect()->back()->withErrors(['error' => 'Data obat yang sama sudah ada'])->withInput();
         }
 
+        // Jika ada file foto, simpan file dan ambil nama filenya
+        $filename = null;
+        if ($request->hasFile('foto')) {
+            $foto = $request->file('foto');
+            $filename = 'Foto_' . uniqid() . '.' . $foto->getClientOriginalExtension();
+            $foto->storeAs('public/obat', $filename); // Pastikan path ini benar
+        }
+
         // Membuat obat baru
-        Obat::create($request->all());
+        Obat::create([
+            'nama_obat' => $request->nama_obat,
+            'dosis' => $request->dosis,
+            'stok' => $request->stok,
+            'harga' => $request->harga,
+            'exp' => $request->exp,
+            'keterangan' => $request->keterangan,
+            'foto' => $filename,  // Masukkan nama file foto jika ada
+            'jenis_obat_id' => $request->jenis_obat_id
+        ]);
 
         return redirect()->route('obat.index')->with('success', 'Obat berhasil ditambahkan'); // Redirect ke halaman daftar obat
     }
@@ -108,6 +126,17 @@ class ObatController extends Controller
             'jenis_obat_id' => 'required|exists:jenis_obat,id',
         ]);
 
+        // Jika ada file foto baru, hapus foto lama dan simpan yang baru
+        if ($request->hasFile('foto')) {
+            if ($obat->foto) {
+                Storage::delete('public/obat/' . $obat->foto);
+            }
+            $foto = $request->file('foto');
+            $filename = 'FTM_' . time() . '.' . $foto->getClientOriginalExtension();
+            $foto->storeAs('public/obat', $filename);
+            $obat->foto = $filename;
+        }
+
         // Cek jika kombinasi nama_obat, dosis, dan jenis_obat_id sudah ada, kecuali untuk obat yang sedang diperbarui
         $existingObat = Obat::where('nama_obat', $request->nama_obat)
             ->where('dosis', $request->dosis)
@@ -120,16 +149,27 @@ class ObatController extends Controller
         }
 
         // Mengupdate data obat
-        $obat->update($request->all());
+        $obat->update([
+            'nama_obat' => $request->nama_obat,
+            'dosis' => $request->dosis,
+            'stok' => $request->stok,
+            'harga' => $request->harga,
+            'exp' => $request->exp,
+            'keterangan' => $request->keterangan,
+            'foto' => $obat->foto, // Memastikan foto tetap sama jika tidak ada perubahan
+            'jenis_obat_id' => $request->jenis_obat_id
+        ]);
 
         return redirect()->route('obat.index')->with('success', 'Obat berhasil diperbarui');
     }
 
-
     // Menghapus data obat
     public function destroy(string $id)
     {
-        $obat = Obat::find($id);
+        $obat = Obat::findOrFail($id);
+        if ($obat->foto) {
+            Storage::delete('public/obat/' . $obat->foto); // Menghapus foto obat jika ada
+        }
         $obat->delete();
         return redirect()->route('obat.index')->with('success', 'Obat berhasil dihapus');
     }
@@ -153,8 +193,6 @@ class ObatController extends Controller
     {
         // Mencari data obat berdasarkan ID
         $obat = Obat::findOrFail($id);
-
-        // Menampilkan view dari folder 'operator' dan mengirimkan data obat
-        return view('operator.showobat', compact('obat'));
+        return view('operator.detailobat', compact('obat')); // Mengembalikan detail data obat
     }
 }

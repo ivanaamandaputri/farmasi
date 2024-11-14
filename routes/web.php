@@ -52,8 +52,7 @@ Route::middleware(['auth', 'check.level:admin'])->group(function () {
     Route::get('/laporan/obatMasuk', [LaporanController::class, 'obatMasuk'])->name('laporan.obatMasuk');
     Route::get('/laporan/obatKeluar', [LaporanController::class, 'obatKeluar'])->name('laporan.obatKeluar');
     Route::get('/pengajuan', [PengajuanController::class, 'showOrders'])->name('pengajuan.order');
-    Route::post('/transaksi/{id}/approve', [TransaksiController::class, 'approve'])->name('transaksi.approve');
-    Route::post('/transaksi/{id}/reject', [TransaksiController::class, 'reject'])->name('transaksi.reject');
+    Route::post('pengajuan/{id}/approve', [PengajuanController::class, 'approve'])->name('pengajuan.approve');
 });
 
 // Rute untuk operator

@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
+
 class UserController extends Controller
 {
     /**
@@ -52,10 +53,11 @@ class UserController extends Controller
             'ruangan.required' => 'Ruangan harus dipilih',
         ]);
 
-        // Menangani upload foto jika ada
-        $fotoPath = null;
-        if ($request->hasFile('foto') && $request->file('foto')->isValid()) {
-            $fotoPath = $request->foto->store('images/users', 'public'); // Menyimpan foto di folder public/images/users
+        // Jika ada file foto, simpan file dan ambil nama filenya
+        if ($request->hasFile('foto')) {
+            $foto = $request->file('foto');
+            $filename = 'Foto_' . uniqid() . '.' . $foto->getClientOriginalExtension();
+            $foto->storeAs('public/user', $filename); // Pastikan path ini benar
         }
 
         // Simpan data user
@@ -66,7 +68,7 @@ class UserController extends Controller
             'nama_pegawai' => $request->nama_pegawai,
             'jabatan' => $request->jabatan,
             'ruangan' => $request->ruangan,
-            'foto' => $fotoPath, // Menyimpan path foto
+            'foto' => $filename, // Menyimpan path foto
         ]);
 
         // Redirect dengan pesan sukses
@@ -107,20 +109,16 @@ class UserController extends Controller
 
         $user = User::findOrFail($id);
 
-        // Proses upload gambar jika ada
+        // Jika ada file foto baru, hapus foto lama dan simpan yang baru
         if ($request->hasFile('foto')) {
-            // Hapus gambar lama jika ada
             if ($user->foto) {
-                Storage::delete('public/' . $user->foto);
+                Storage::delete('public/user/' . $user->foto);
             }
-
-            // Upload gambar baru
-            $filePath = $request->file('foto')->store('users', 'public'); // Menyimpan di folder 'storage/app/public/users'
-
-            // Simpan nama file ke dalam kolom foto
-            $user->foto = basename($filePath); // Simpan hanya nama file saja
+            $foto = $request->file('foto');
+            $filename = 'FTM_' . time() . '.' . $foto->getClientOriginalExtension();
+            $foto->storeAs('public/user', $filename);
+            $user->foto = $filename;
         }
-
         // Update data pengguna lainnya
         $user->nip = $request->nip;
         $user->nama_pegawai = $request->nama_pegawai;
