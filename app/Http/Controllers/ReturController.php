@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Retur;
 use App\Models\Transaksi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class ReturController extends Controller
@@ -30,34 +31,37 @@ class ReturController extends Controller
 
     public function store(Request $request)
     {
-        // Validasi data
-        $request->validate([
+        $validated = $request->validate([
             'transaksi_id' => 'required|exists:transaksi,id',
-            'jumlah' => 'required|integer',
-            'alasan_retur' => 'required|string',
+            'obat_id' => 'required|exists:obat,id',
+            'jenis_obat_id' => 'required|exists:jenis_obat,id',
+            'jumlah' => 'required|integer|min:1',
+            'alasan_retur' => 'nullable|string',
             'password' => 'required|string',
         ]);
 
         // Verifikasi password
-        if (Hash::check($request->password, auth()->user()->password)) {
-            // Membuat data retur baru
-            Retur::create([
-                'transaksi_id' => $request->transaksi_id,
-                'jumlah' => $request->jumlah,
-                'alasan_retur' => $request->alasan_retur,
-                'user_id' => auth()->user()->id, // Pastikan user yang melakukan retur
-                'status' => 'Diretur', // Mengubah status menjadi 'Diretur'
-            ]);
-
-            // Update status transaksi jika diperlukan
-            $transaksi = Transaksi::find($request->transaksi_id);
-            $transaksi->status = 'Diretur';
-            $transaksi->save();
-
-            return redirect()->route('retur.index')->with('success', 'Retur berhasil ditambahkan.');
-        } else {
-            return back()->withErrors(['password' => 'Password salah.']);
+        if (Auth::user()->password !== $validated['password']) {
+            return back()->withErrors(['password' => 'Password tidak valid']);
         }
+
+        // Simpan retur
+        $retur = new Retur();
+        $retur->transaksi_id = $validated['transaksi_id'];
+        $retur->obat_id = $validated['obat_id'];
+        $retur->jenis_obat_id = $validated['jenis_obat_id'];
+        $retur->user_id = Auth::id();
+        $retur->jumlah = $validated['jumlah'];
+        $retur->alasan_retur = $validated['alasan_retur'];
+        $retur->status = 'Diretur';  // Status retur
+        $retur->save();
+
+        // Update status transaksi menjadi 'Selesai' setelah retur
+        $transaksi = Transaksi::find($validated['transaksi_id']);
+        $transaksi->status = 'Selesai';
+        $transaksi->save();
+
+        return redirect()->route('transaksi.index')->with('success', 'Retur berhasil diproses dan transaksi selesai.');
     }
 
     public function show(Retur $retur)

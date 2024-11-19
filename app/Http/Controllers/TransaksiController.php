@@ -72,7 +72,12 @@ class TransaksiController extends Controller
     // Menampilkan form untuk mengedit transaksi
     public function edit(Transaksi $transaksi)
     {
-        // Mengambil semua obat untuk ditampilkan di form edit
+        // Pastikan hanya transaksi yang statusnya "Menunggu" yang bisa diubah oleh operator
+        if ($transaksi->status != 'Menunggu') {
+            return redirect()->route('transaksi.index')->with('error', 'Transaksi ini tidak bisa diedit karena sudah diproses.');
+        }
+
+        // Lanjutkan proses jika transaksi masih "Menunggu"
         $obat = Obat::all();
         return view('transaksi.edit', compact('transaksi', 'obat'));
     }
@@ -111,13 +116,17 @@ class TransaksiController extends Controller
     // Menghapus transaksi
     public function destroy(Transaksi $transaksi)
     {
+        // Pastikan hanya transaksi yang statusnya "Menunggu" yang bisa dihapus oleh operator
+        if ($transaksi->status != 'Menunggu') {
+            return redirect()->route('transaksi.index')->with('error', 'Transaksi ini tidak bisa dihapus karena sudah diproses.');
+        }
+
         // Mengembalikan stok obat
         $obat = $transaksi->obat;
         $obat->increment('stok', $transaksi->jumlah);
 
         // Menghapus transaksi
         $transaksi->delete();
-
         return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil dihapus');
     }
 
@@ -145,18 +154,42 @@ class TransaksiController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function finish($id)
+    public function selesai($id)
     {
         $transaksi = Transaksi::findOrFail($id);
 
         // Periksa status dan ubah jika perlu
-        if ($transaksi->status === 'Menunggu') {
+        if ($transaksi->status === 'Disetujui') {
             $transaksi->status = 'Selesai';
             $transaksi->save();
 
-            return response()->json(['message' => 'Transaksi berhasil diubah menjadi Selesai']);
+            return response()->json(['message' => 'Transaksi Selesai']);
         }
 
         return response()->json(['error' => 'Transaksi tidak bisa diubah'], 400);
+    }
+
+    // Menangani retur transaksi
+    public function retur(Request $request)
+    {
+        $request->validate([
+            'jumlah' => 'required|integer',
+            'alasan_retur' => 'nullable|string',
+            'password' => 'required|string',
+        ]);
+
+        // Verifikasi password dan validasi lainnya
+        // Proses untuk membuat retur baru
+        $retur = Retur::create([
+            'transaksi_id' => $request->transaksi_id,
+            'obat_id' => $request->obat_id,
+            'jumlah' => $request->jumlah,
+            'alasan_retur' => $request->alasan_retur,
+            'password' => $request->password, // Proses validasi password di sini
+            'status' => 'Diretur',
+            'user_id' => auth()->id(),
+        ]);
+
+        return response()->json(['success' => 'Retur berhasil diproses']);
     }
 }

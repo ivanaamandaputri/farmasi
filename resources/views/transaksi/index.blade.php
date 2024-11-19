@@ -24,7 +24,7 @@
                             @foreach ($groupedTransaksi as $tanggal => $transaksiPerTanggal)
                                 <tr>
                                     <td>
-                                        <button class="btn btn-sm btn-info toggle-collapse" data-bs-toggle="collapse"
+                                        <button class="btn btn-sm btn-primary toggle-collapse" data-bs-toggle="collapse"
                                             data-bs-target="#collapse-{{ $tanggal }}">
                                             +
                                         </button>
@@ -34,7 +34,7 @@
                                 </tr>
                                 <tr>
                                     <td colspan="3" class="p-0">
-                                        <div id="collapse-{{ $tanggal }}" class="collapse">
+                                        <div class="collapse" id="collapse-{{ $tanggal }}">
                                             <table class="mb-0 table table shadow-sm">
                                                 <!-- Tambahkan shadow-sm untuk efek timbul -->
                                                 <thead>
@@ -60,7 +60,7 @@
                                                             <td>{{ $item->obat->dosis }}</td>
                                                             <td>{{ $item->obat->jenisObat->nama_jenis }}</td>
                                                             <td>{{ number_format($item->jumlah, 0, ',', '.') }}</td>
-                                                            <td>{{ optional($item->transaksi)->acc ?? '' }}</td>
+                                                            <td>{{ optional($item->transaksi)->acc ?? '-' }}</td>
                                                             <td>{{ number_format($item->obat->harga, 0, ',', '.') }}</td>
                                                             <td>{{ number_format($item->total, 0, ',', '.') }}</td>
                                                             <td>
@@ -68,6 +68,8 @@
                                                                     <span class="badge bg-success">Disetujui</span>
                                                                 @elseif ($item->status === 'Ditolak')
                                                                     <span class="badge bg-danger">Ditolak</span>
+                                                                @elseif ($item->status === 'Selesai')
+                                                                    <span class="badge bg-dark">Selesai</span>
                                                                 @else
                                                                     <span class="badge bg-warning">Menunggu</span>
                                                                 @endif
@@ -88,8 +90,18 @@
                                                                         <button type="submit"
                                                                             class="btn btn-danger btn-sm">Hapus</button>
                                                                     </form>
+                                                                @elseif ($item->status === 'Disetujui')
+                                                                    <button type="button"
+                                                                        class="btn btn-success btn-sm selesai-btn"
+                                                                        data-id="{{ $item->id }}">Selesai</button>
+                                                                    <button type="button"
+                                                                        class="btn btn-warning btn-sm retur-btn"
+                                                                        data-id="{{ $item->id }}"
+                                                                        data-obat="{{ $item->obat->id }}"
+                                                                        data-nama="{{ $item->obat->nama_obat }}">Retur</button>
                                                                 @endif
                                                             </td>
+
                                                         </tr>
                                                     @endforeach
                                                 </tbody>
@@ -105,12 +117,12 @@
         </div>
 
         <!-- Modal Alasan Penolakan -->
-        <div class="modal fade" id="reasonModal" tabindex="-1" aria-labelledby="reasonModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
+        <div class="modal fade" id="reasonModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">Alasan Penolakan</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <p id="reasonText"></p>
@@ -119,20 +131,126 @@
             </div>
         </div>
 
-        <script>
-            document.querySelectorAll('.view-reason-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const reason = this.getAttribute('data-reason');
-                    document.getElementById('reasonText').textContent = reason || 'Alasan tidak tersedia';
-                    $('#reasonModal').modal('show');
-                });
-            });
+        <!-- Modal Konfirmasi Selesai -->
+        <div class="modal fade" id="confirmSelesaiModal" tabindex="-1" aria-labelledby="confirmSelesaiModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="confirmSelesaiModalLabel">Konfirmasi Selesai</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        Apakah Anda yakin ingin menyelesaikan transaksi ini?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="button" class="btn btn-success" id="confirmSelesaiBtn">Ya, Selesai</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
+        <!-- Modal Retur -->
+        <div class="modal fade" id="returModal" tabindex="-1" aria-labelledby="returModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="returModalLabel">Retur Transaksi</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="returForm">
+                            <div class="mb-3">
+                                <label for="jumlah" class="form-label">Jumlah</label>
+                                <input type="number" class="form-control" id="jumlah" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="alasan" class="form-label">Alasan Retur</label>
+                                <textarea class="form-control" id="alasan" rows="3" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Kirim Retur</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
             // Lihat alasan penolakan
             $(document).on('click', '.view-reason-btn', function() {
                 const reason = $(this).data('reason');
-                $('#reasonText').text(reason);
-                $('#reasonModal').modal('show');
+                $('#reasonText').text(reason); // Mengisi alasan ke dalam modal
+                $('#reasonModal').modal('show'); // Menampilkan modal
+            });
+
+            // untuk tombol selesai
+            $(document).on('click', '.selesai-btn', function() {
+                const transaksiId = $(this).data('id');
+                $('#confirmSelesaiModal').modal('show');
+
+                $('#confirmSelesaiBtn').on('click', function() {
+                    $.ajax({
+                        url: '/transaksi/selesai/' +
+                            transaksiId, // Rute untuk menandai transaksi selesai
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            location.reload(); // Reload halaman setelah transaksi selesai
+                        },
+                        error: function(xhr, status, error) {
+                            alert('Terjadi kesalahan saat menyelesaikan transaksi');
+                        }
+                    });
+                    $('#confirmSelesaiModal').modal('hide');
+                });
+            });
+
+            // untuk tombol retur 
+            $(document).on('click', '.retur-btn', function() {
+                const transaksiId = $(this).data('id');
+                const obatId = $(this).data('obat');
+                const namaObat = $(this).data('nama');
+
+                $('#returModal').modal('show');
+
+                $('#returForm').on('submit', function(e) {
+                    e.preventDefault();
+
+                    const jumlah = $('#jumlah').val();
+                    const alasan = $('#alasan').val();
+                    const password = $('#password').val();
+
+                    $.ajax({
+                        url: '/transaksi/retur', // Endpoint untuk mengirim retur
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            transaksi_id: transaksiId,
+                            obat_id: obatId,
+                            jumlah: jumlah,
+                            alasan_retur: alasan,
+                            password: password
+                        },
+                        success: function(response) {
+                            alert('Retur berhasil diproses');
+                            location.reload(); // Reload halaman setelah retur diproses
+                        },
+                        error: function(xhr, status, error) {
+                            alert('Terjadi kesalahan saat memproses retur');
+                        }
+                    });
+
+                    $('#returModal').modal('hide');
+                });
             });
         </script>
     @endsection

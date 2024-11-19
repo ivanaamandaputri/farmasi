@@ -39,7 +39,7 @@
                                             +
                                         </button>
                                     </td>
-                                    <td>{{ \Carbon\Carbon::parse($tanggal)->format('d M Y') }}</td>
+                                    <td class="bg-light">{{ \Carbon\Carbon::parse($tanggal)->format('d M Y') }}</td>
                                     <td>Lihat Transaksi</td>
                                 </tr>
                                 <tr>
@@ -95,10 +95,14 @@
                                                                             @elseif ($transaksi->status === 'Ditolak')
                                                                                 <span
                                                                                     class="badge bg-danger">{{ $transaksi->status }}</span>
+                                                                            @elseif ($transaksi->status === 'Selesai')
+                                                                                <span
+                                                                                    class="badge bg-dark">{{ $transaksi->status }}</span>
                                                                             @else
                                                                                 <span
                                                                                     class="badge bg-warning">{{ $transaksi->status }}</span>
                                                                             @endif
+
                                                                         </td>
                                                                         <td>
                                                                             @if ($transaksi->status === 'Ditolak')
@@ -108,7 +112,8 @@
                                                                             @elseif ($transaksi->status === 'Menunggu')
                                                                                 <button type="button"
                                                                                     class="btn btn-sm btn-primary approve-btn"
-                                                                                    data-id="{{ $transaksi->id }}">Setujui</button>
+                                                                                    data-id="{{ $transaksi->id }}"
+                                                                                    data-max-jumlah="{{ $transaksi->jumlah }}">Setujui</button>
                                                                                 <button type="button"
                                                                                     class="btn btn-sm btn-danger reject-btn"
                                                                                     data-id="{{ $transaksi->id }}">Tolak</button>
@@ -159,6 +164,7 @@
                     <div class="mt-3">
                         <label for="jumlahAcc" class="form-label">Jumlah ACC</label>
                         <input type="number" class="form-control" id="jumlahAcc" min="1" required>
+                        <div id="errorAcc" class="text-danger" style="display: none;"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -182,6 +188,9 @@
                     <div class="form-group">
                         <label for="rejectReason">Silakan isi alasan penolakan:</label>
                         <textarea class="form-control" id="rejectReason" rows="3" placeholder="Masukkan alasan"></textarea>
+                        <div id="errorReason" class="text-danger mt-2" style="display: none;">
+                            Alasan penolakan tidak boleh kosong.
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -191,6 +200,7 @@
             </div>
         </div>
     </div>
+
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
@@ -204,27 +214,61 @@
 
             // Tombol untuk Setujui
             $('.approve-btn').on('click', function() {
-                const id = $(this).data('id');
-                // Dapatkan data obat terkait (gunakan AJAX atau sesuai kebutuhan)
+                const id = $(this).data('id'); // Mendapatkan ID transaksi yang akan disetujui
+                const maxJumlah = $(this).data('max-jumlah'); // Mendapatkan jumlah yang diminta
+                $('#confirmApproveModal').data('id', id); // Menyimpan ID transaksi di modal
+                $('#confirmApproveModal').data('max-jumlah',
+                    maxJumlah); // Menyimpan jumlah yang diminta di modal
+                $('#jumlahAcc').val(''); // Reset input jumlah ACC
+                $('#errorAcc').hide(); // Menyembunyikan pesan error
                 $('#confirmApproveModal').modal('show');
             });
 
+
             // Tombol untuk Tolak
             $('.reject-btn').on('click', function() {
-                const id = $(this).data('id');
-                $('#confirmRejectModal').modal('show');
+                const transaksiId = $(this).data('id'); // Ambil ID transaksi
+                $('#confirmRejectModal').data('id', transaksiId); // Simpan ID ke modal
+                $('#rejectReason').val(''); // Bersihkan textarea alasan
+                $('#errorReason').hide(); // Sembunyikan error jika ada
+                $('#confirmRejectModal').modal('show'); // Tampilkan modal
             });
+
 
             // Konfirmasi Setujui
             $('#confirmApproveButton').on('click', function() {
-                const jumlahAcc = $('#jumlahAcc').val();
-                if (jumlahAcc > 0) {
-                    // Kirim permintaan ke server untuk setujui transaksi
-                    // Gunakan AJAX atau form submission sesuai kebutuhan
-                    $('#confirmApproveModal').modal('hide');
-                } else {
-                    $('#errorAcc').show();
+                const jumlahAcc = parseInt($('#jumlahAcc').val());
+                const maxJumlah = parseInt($('#confirmApproveModal').data('max-jumlah'));
+                const transaksiId = $('#confirmApproveModal').data('id');
+
+                if (!jumlahAcc || jumlahAcc <= 0) {
+                    $('#errorAcc').text('Jumlah ACC tidak boleh kosong atau kurang dari 1').show();
+                    return;
                 }
+                if (jumlahAcc > maxJumlah) {
+                    $('#errorAcc').text('Jumlah ACC tidak boleh melebihi jumlah permintaan.').show();
+                    return;
+                }
+
+                $('#errorAcc').hide();
+                // Kirim data via AJAX
+                $.ajax({
+                    url: `/transaksi/approve/${transaksiId}`,
+                    type: 'POST',
+                    data: {
+                        acc: jumlahAcc,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        $('#confirmApproveModal').modal('hide');
+                        alert('Transaksi berhasil disetujui');
+                        location.reload();
+                    },
+                    error: function(xhr) {
+                        const errorMessage = xhr.responseJSON?.error || 'Terjadi kesalahan.';
+                        alert(errorMessage);
+                    }
+                });
             });
 
             // Konfirmasi Tolak
@@ -239,31 +283,35 @@
             });
         });
 
+
+        // Konfirmasi penolakan
         $('#confirmRejectButton').on('click', function() {
-            const alasan = $('#rejectReason').val();
-            if (alasan.trim() !== '') {
-                // Send the rejection reason to the server via AJAX
-                $.ajax({
-                    url: '/transaksi/reject/' + transaksiId, // Use the correct URL
-                    method: 'POST',
-                    data: {
-                        reason: alasan,
-                        _token: '{{ csrf_token() }}',
-                    },
-                    success: function(response) {
-                        // Close the modal and update UI
-                        $('#confirmRejectModal').modal('hide');
-                        alert(response.success);
-                        location.reload(); // Optionally, refresh the page to see the updated status
-                    },
-                    error: function(xhr) {
-                        // Handle error (e.g., show an error message)
-                        alert(xhr.responseJSON.error);
-                    }
-                });
-            } else {
-                $('#errorReason').show();
+            const alasan = $('#rejectReason').val().trim();
+            const transaksiId = $('#confirmRejectModal').data('id');
+
+            if (alasan === '') {
+                $('#errorReason').text('Alasan penolakan tidak boleh kosong.').show();
+                return;
             }
+
+            // AJAX untuk pengiriman alasan penolakan
+            $.ajax({
+                url: `/transaksi/reject/${transaksiId}`,
+                type: 'POST',
+                data: {
+                    alasan: alasan,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    $('#confirmRejectModal').modal('hide');
+                    alert('Transaksi berhasil ditolak');
+                    location.reload();
+                },
+                error: function(xhr) {
+                    const errorMessage = xhr.responseJSON?.error || 'Terjadi kesalahan.';
+                    alert(errorMessage);
+                }
+            });
         });
     </script>
 @endsection

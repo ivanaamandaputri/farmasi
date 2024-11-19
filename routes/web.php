@@ -52,7 +52,8 @@ Route::middleware(['auth', 'check.level:admin'])->group(function () {
     Route::get('/laporan/obatMasuk', [LaporanController::class, 'obatMasuk'])->name('laporan.obatMasuk');
     Route::get('/laporan/obatKeluar', [LaporanController::class, 'obatKeluar'])->name('laporan.obatKeluar');
     Route::get('/pengajuan', [PengajuanController::class, 'showOrders'])->name('pengajuan.order');
-    Route::post('pengajuan/{id}/approve', [PengajuanController::class, 'approve'])->name('pengajuan.approve');
+    Route::post('/transaksi/approve/{id}', [PengajuanController::class, 'approve'])->name('transaksi.approve');
+    Route::post('/transaksi/reject/{id}', [PengajuanController::class, 'reject'])->name('transaksi.reject');
 });
 
 // Rute untuk operator
@@ -66,4 +67,8 @@ Route::middleware(['auth', 'check.level:operator'])->group(function () {
     Route::post('/transaksi/finish/{id}', [TransaksiController::class, 'finish'])->name('transaksi.finish');
     Route::get('/retur/{transaksiId?}', [ReturController::class, 'index'])->name('retur.index');
     Route::get('/transaksi/detail/{id}', [TransaksiController::class, 'detail'])->name('transaksi.detail');
+    Route::post('/transaksi/selesai/{transaksi}', [TransaksiController::class, 'selesai'])->name('transaksi.selesai');
+
+    // Menangani retur transaksi
+    Route::post('/transaksi/retur', [TransaksiController::class, 'retur'])->name('transaksi.retur');
 });
