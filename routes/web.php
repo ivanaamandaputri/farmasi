@@ -6,6 +6,7 @@ use App\Http\Controllers\JenisObatController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\ObatController;
 use App\Http\Controllers\PengajuanController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReturController;
 use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\UserController;
@@ -54,6 +55,10 @@ Route::middleware(['auth', 'check.level:admin'])->group(function () {
     Route::get('/pengajuan', [PengajuanController::class, 'showOrders'])->name('pengajuan.order');
     Route::post('/transaksi/approve/{id}', [PengajuanController::class, 'approve'])->name('transaksi.approve');
     Route::post('/transaksi/reject/{id}', [PengajuanController::class, 'reject'])->name('transaksi.reject');
+    Route::get('/laporan/cetak', [LaporanController::class, 'cetak'])->name('laporan.cetak');
+    Route::post('/obat/{id}/tambah-stok', [ObatController::class, 'tambahStok'])->name('obat.tambahStok');
+    Route::get('/dashboard/notifikasi', [PengajuanController::class, 'getNotifikasi'])->name('dashboard.notifikasi');
+    Route::get('/notifikasi/baca/{id}', [PengajuanController::class, 'bacaNotifikasi'])->name('notifikasi.baca');
 });
 
 // Rute untuk operator
@@ -69,6 +74,10 @@ Route::middleware(['auth', 'check.level:operator'])->group(function () {
     Route::get('/transaksi/detail/{id}', [TransaksiController::class, 'detail'])->name('transaksi.detail');
     Route::post('/transaksi/selesai/{transaksi}', [TransaksiController::class, 'selesai'])->name('transaksi.selesai');
 
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
+    Route::get('/profile/edit/{user}', [ProfileController::class, 'edit'])->name('profile.edit');
+    // Route untuk memproses pembaruan profil
+    Route::put('/profile/edit/{user}', [ProfileController::class, 'update'])->name('profile.update');
     // Menangani retur transaksi
     Route::post('/transaksi/retur', [TransaksiController::class, 'retur'])->name('transaksi.retur');
 });

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Obat;
 use App\Models\JenisObat; // Import model JenisObat
+use App\Models\StokMasuk;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -170,7 +171,21 @@ class ObatController extends Controller
         if ($obat->foto) {
             Storage::delete('public/obat/' . $obat->foto); // Menghapus foto obat jika ada
         }
+        // Periksa apakah obat ini digunakan dalam transaksi
+        $transaksi = \App\Models\Transaksi::where('obat_id', $obat->id)->first();
+
+        if ($transaksi) {
+            // Jika obat terkait dengan transaksi, tampilkan pesan konfirmasi atau alihkan
+            return redirect()->route('obat.index')->with('error', 'Obat ini tidak dapat dihapus karena sudah digunakan dalam transaksi.');
+        }
+
+        // Jika tidak ada transaksi, hapus foto (jika ada) dan hapus obat
+        if ($obat->foto) {
+            Storage::delete('public/obat/' . $obat->foto); // Menghapus foto obat jika ada
+        }
+
         $obat->delete();
+
         return redirect()->route('obat.index')->with('success', 'Obat berhasil dihapus');
     }
 
@@ -193,6 +208,31 @@ class ObatController extends Controller
     {
         // Mencari data obat berdasarkan ID
         $obat = Obat::findOrFail($id);
-        return view('operator.detailobat', compact('obat')); // Mengembalikan detail data obat
+        return view('operator.showobat', compact('obat')); // Mengembalikan detail data obat
+    }
+
+    public function tambahStok(Request $request, $id)
+    {
+        $request->validate([
+            'jumlah' => 'required|integer|min:1',
+            'sumber' => 'nullable|string|max:255',
+            'tanggal' => 'required|date',
+        ]);
+
+        // Temukan obat
+        $obat = Obat::findOrFail($id);
+
+        // Tambahkan stok ke tabel stok_masuk
+        StokMasuk::create([
+            'obat_id' => $obat->id,    // Pastikan 'obat_id' sesuai
+            'jumlah' => $request->jumlah,
+            'sumber' => $request->sumber,
+            'tanggal' => $request->tanggal,
+        ]);
+
+        // Update stok obat
+        $obat->increment('stok', $request->jumlah);
+
+        return redirect()->route('obat.index')->with('success', 'Stok berhasil ditambahkan!');
     }
 }

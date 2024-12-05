@@ -36,7 +36,8 @@
                                     <td>
                                         <button class="btn btn-sm btn-primary toggle-collapse" data-bs-toggle="collapse"
                                             data-bs-target="#collapse-{{ $tanggal }}">
-                                            +
+                                            <i class="bi bi-chevron-down"></i>
+                                            <!-- Ikon panah ke bawah dengan Bootstrap Icons -->
                                         </button>
                                     </td>
                                     <td class="bg-light">{{ \Carbon\Carbon::parse($tanggal)->format('d M Y') }}</td>
@@ -202,40 +203,59 @@
     </div>
 
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- Memuat jQuery -->
+    <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script> <!-- Memuat DataTables -->
+    <script src="https://cdn.datatables.net/rowgroup/1.1.0/js/dataTables.rowGroup.min.js"></script> <!-- Memuat RowGroup -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
         $(document).ready(function() {
-            // Tombol untuk melihat alasan penolakan
+            // Toggle collapse behavior for date and room
+            $('.toggle-collapse').on('click', function() {
+                const target = $(this).data('bs-target');
+                const icon = $(this).find('i');
+                icon.toggleClass('bi-chevron-down bi-chevron-up'); // Toggle the collapse icon
+            });
+
+            // Handling collapse opening and closing
+            $('.collapse').on('shown.bs.collapse', function() {
+                $(this).closest('tr').find('.toggle-collapse i').removeClass('bi-chevron-down').addClass(
+                    'bi-chevron-up');
+            });
+
+            $('.collapse').on('hidden.bs.collapse', function() {
+                $(this).closest('tr').find('.toggle-collapse i').removeClass('bi-chevron-up').addClass(
+                    'bi-chevron-down');
+            });
+
+            // Viewing rejection reason
             $('.view-reason-btn').on('click', function() {
                 const reason = $(this).data('reason');
                 $('#reasonText').text(reason);
                 $('#reasonModal').modal('show');
             });
 
-            // Tombol untuk Setujui
+            // Approving the transaction
             $('.approve-btn').on('click', function() {
-                const id = $(this).data('id'); // Mendapatkan ID transaksi yang akan disetujui
-                const maxJumlah = $(this).data('max-jumlah'); // Mendapatkan jumlah yang diminta
-                $('#confirmApproveModal').data('id', id); // Menyimpan ID transaksi di modal
-                $('#confirmApproveModal').data('max-jumlah',
-                    maxJumlah); // Menyimpan jumlah yang diminta di modal
-                $('#jumlahAcc').val(''); // Reset input jumlah ACC
-                $('#errorAcc').hide(); // Menyembunyikan pesan error
+                const id = $(this).data('id');
+                const maxJumlah = $(this).data('max-jumlah');
+                $('#confirmApproveModal').data('id', id);
+                $('#confirmApproveModal').data('max-jumlah', maxJumlah);
+                $('#jumlahAcc').val('');
+                $('#errorAcc').hide();
                 $('#confirmApproveModal').modal('show');
             });
 
-
-            // Tombol untuk Tolak
+            // Rejecting the transaction
             $('.reject-btn').on('click', function() {
-                const transaksiId = $(this).data('id'); // Ambil ID transaksi
-                $('#confirmRejectModal').data('id', transaksiId); // Simpan ID ke modal
-                $('#rejectReason').val(''); // Bersihkan textarea alasan
-                $('#errorReason').hide(); // Sembunyikan error jika ada
-                $('#confirmRejectModal').modal('show'); // Tampilkan modal
+                const transaksiId = $(this).data('id');
+                $('#confirmRejectModal').data('id', transaksiId);
+                $('#rejectReason').val('');
+                $('#errorReason').hide();
+                $('#confirmRejectModal').modal('show');
             });
 
-
-            // Konfirmasi Setujui
+            // Confirm approve button action
             $('#confirmApproveButton').on('click', function() {
                 const jumlahAcc = parseInt($('#jumlahAcc').val());
                 const maxJumlah = parseInt($('#confirmApproveModal').data('max-jumlah'));
@@ -251,9 +271,9 @@
                 }
 
                 $('#errorAcc').hide();
-                // Kirim data via AJAX
+                // Send approval request via AJAX
                 $.ajax({
-                    url: `/transaksi/approve/${transaksiId}`,
+                    url: '/transaksi/approve/' + transaksiId,
                     type: 'POST',
                     data: {
                         acc: jumlahAcc,
@@ -271,46 +291,35 @@
                 });
             });
 
-            // Konfirmasi Tolak
+            // Confirm reject button action
             $('#confirmRejectButton').on('click', function() {
-                const alasan = $('#rejectReason').val();
-                if (alasan.trim() !== '') {
-                    // Kirim permintaan untuk menolak dengan alasan
-                    $('#confirmRejectModal').modal('hide');
-                } else {
+                const alasan = $('#rejectReason').val().trim();
+                const transaksiId = $('#confirmRejectModal').data('id');
+
+                if (!alasan) {
                     $('#errorReason').show();
+                    return;
                 }
-            });
-        });
 
-
-        // Konfirmasi penolakan
-        $('#confirmRejectButton').on('click', function() {
-            const alasan = $('#rejectReason').val().trim();
-            const transaksiId = $('#confirmRejectModal').data('id');
-
-            if (alasan === '') {
-                $('#errorReason').text('Alasan penolakan tidak boleh kosong.').show();
-                return;
-            }
-
-            // AJAX untuk pengiriman alasan penolakan
-            $.ajax({
-                url: `/transaksi/reject/${transaksiId}`,
-                type: 'POST',
-                data: {
-                    alasan: alasan,
-                    _token: '{{ csrf_token() }}'
-                },
-                success: function(response) {
-                    $('#confirmRejectModal').modal('hide');
-                    alert('Transaksi berhasil ditolak');
-                    location.reload();
-                },
-                error: function(xhr) {
-                    const errorMessage = xhr.responseJSON?.error || 'Terjadi kesalahan.';
-                    alert(errorMessage);
-                }
+                $('#errorReason').hide();
+                // Send rejection request via AJAX
+                $.ajax({
+                    url: '/transaksi/reject/' + transaksiId,
+                    type: 'POST',
+                    data: {
+                        alasan_penolakan: alasan,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        $('#confirmRejectModal').modal('hide');
+                        alert('Transaksi berhasil ditolak');
+                        location.reload();
+                    },
+                    error: function(xhr) {
+                        const errorMessage = xhr.responseJSON?.error || 'Terjadi kesalahan.';
+                        alert(errorMessage);
+                    }
+                });
             });
         });
     </script>

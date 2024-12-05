@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
+use Illuminate\Database\Seeder;  // Add this line
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class UserSeeder extends Seeder
 {
@@ -13,6 +13,9 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+        // Clear existing data to prevent duplication
+        DB::table('users')->truncate();
+
         User::insert([
             [
                 'nip' => '123',

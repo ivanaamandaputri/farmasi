@@ -14,10 +14,16 @@
             </div>
         @endif
 
+        @if (session('error'))
+            <div class="alert alert-danger">
+                {{ session('error') }}
+            </div>
+        @endif
+
         <div class="card mb-4">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table id="datatablesSimple" class="table-striped table-hover table">
+                    <table id="datatablesSimple" class="table-hover table">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -47,22 +53,42 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <!-- Tombol Detail dengan gaya yang sama -->
                                         <a href="{{ route('user.show', $item->id) }}" class="btn btn-info btn">Detail</a>
-                                        <!-- Tombol Edit -->
                                         <a href="{{ route('user.edit', $item->id) }}" class="btn btn-warning btn">Edit</a>
-                                        <!-- Form Hapus -->
-                                        <form action="{{ route('user.destroy', $item->id) }}" method="POST"
-                                            style="display:inline;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn"
-                                                onclick="return confirm('Apakah yakin ingin menghapus?')">Hapus</button>
-                                        </form>
+                                        <button class="btn btn-danger btn" data-bs-toggle="modal"
+                                            data-bs-target="#modalHapus{{ $item->id }}">Hapus</button>
                                     </td>
                                 </tr>
-                            @endforeach
 
+                                <!-- Modal Konfirmasi Hapus -->
+                                <div class="modal fade" id="modalHapus{{ $item->id }}" tabindex="-1"
+                                    aria-labelledby="modalHapusLabel{{ $item->id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="modalHapusLabel{{ $item->id }}">Konfirmasi
+                                                    Hapus</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Apakah Anda yakin ingin menghapus data user
+                                                <strong>{{ $item->nama_pegawai }}</strong>?
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-bs-dismiss="modal">Batal</button>
+                                                <form action="{{ route('user.destroy', $item->id) }}" method="POST"
+                                                    style="display:inline;">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-danger">Hapus</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
@@ -71,23 +97,15 @@
     </div>
 
     <style>
-        /* Mengatur ukuran lingkaran dan memastikan gambar tidak peyang */
         .custom-photo {
             width: 200px;
-            /* Ukuran lingkaran lebih besar */
             height: 200px;
-            /* Ukuran lingkaran lebih besar */
             object-fit: cover;
-            /* Gambar akan menyesuaikan dengan frame */
             border-radius: 50%;
-            /* Membuat gambar menjadi lingkaran */
         }
-    </style>
 
-    <style>
         .card {
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            /* Kesan timbul 3D */
         }
     </style>
 @endsection

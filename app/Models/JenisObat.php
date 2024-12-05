@@ -18,7 +18,7 @@ class JenisObat extends Model
     // Relasi dengan Obat (satu JenisObat memiliki banyak Obat)
     public function obat()
     {
-        return $this->hasMany(Obat::class);
+        return $this->hasMany(Obat::class, 'jenis_obat_id');
     }
 
     // Relasi dengan Transaksi

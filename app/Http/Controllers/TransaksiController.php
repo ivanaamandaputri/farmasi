@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Transaksi;
 use App\Models\Obat;
 use App\Models\Retur;
+use App\Models\User;
+use App\Models\Notifikasi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -24,6 +26,7 @@ class TransaksiController extends Controller
         $groupedTransaksi = $transaksi->groupBy(function ($item) {
             return $item->tanggal; // Pastikan 'tanggal' adalah atribut valid
         });
+        // dd($transaksi); 
 
         // Kirimkan data ke view
         return view('transaksi.index', compact('groupedTransaksi'));
@@ -65,7 +68,7 @@ class TransaksiController extends Controller
             'tanggal' => $request->tanggal,
             'jenis_obat_id' => $obat->jenis_obat_id,
         ]);
-
+        // dd($request->all());
         return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil ditambahkan dan menunggu persetujuan');
     }
 
@@ -191,5 +194,28 @@ class TransaksiController extends Controller
         ]);
 
         return response()->json(['success' => 'Retur berhasil diproses']);
+    }
+    public function showTransaksi($tanggal)
+    {
+        return view('nama-view', compact('tanggal'));
+    }
+
+    public function buatPengajuan(Request $request)
+    {
+        $pengajuan = Transaksi::create($request->all());
+
+        // Kirim notifikasi ke semua admin
+        $admins = User::where('level', 'admin')->get(); // Ambil semua admin
+        foreach ($admins as $admin) {
+            Notifikasi::create([
+                'user_id' => $admin->id,
+                'judul' => 'Pengajuan Baru',
+                'pesan' => 'Ada pengajuan baru pada tanggal ' . $pengajuan->tanggal .
+                    ' untuk obat ' . $pengajuan->obat->nama . '. Silakan periksa.',
+                'level' => 'admin',
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Pengajuan berhasil dibuat.');
     }
 }

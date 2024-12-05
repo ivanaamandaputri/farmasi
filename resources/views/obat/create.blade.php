@@ -6,6 +6,15 @@
             <div class="card-header">
                 <h4>Tambah Obat Baru</h4>
             </div>
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
             <div class="card-body">
                 <form action="{{ route('obat.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf

@@ -8,7 +8,11 @@
             <a href="{{ route('jenis_obat.create') }}" class="btn btn-primary mb-3">Tambah Jenis</a>
         </div>
 
-        <!-- Success Alert -->
+        @if (session('error'))
+            <div class="alert alert-danger">
+                {{ session('error') }}
+            </div>
+        @endif
         @if (session('success'))
             <div class="alert alert-success">
                 {{ session('success') }}
@@ -37,14 +41,39 @@
                                         <a href="{{ route('jenis_obat.edit', $jenis->id) }}"
                                             class="btn btn-warning">Edit</a>
 
-                                        <!-- Form Hapus -->
-                                        <form action="{{ route('jenis_obat.destroy', $jenis->id) }}" method="POST"
-                                            style="display:inline;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger"
-                                                onclick="return confirm('Apakah yakin ingin menghapus?')">Hapus</button>
-                                        </form>
+                                        <!-- Tombol Hapus -->
+                                        <button class="btn btn-danger" data-bs-toggle="modal"
+                                            data-bs-target="#modalHapus{{ $jenis->id }}">Hapus</button>
+
+                                        <!-- Modal Konfirmasi Hapus -->
+                                        <div class="modal fade" id="modalHapus{{ $jenis->id }}" tabindex="-1"
+                                            aria-labelledby="modalHapusLabel{{ $jenis->id }}" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="modalHapusLabel{{ $jenis->id }}">
+                                                            Konfirmasi Hapus</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                            aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        Apakah Anda yakin ingin menghapus data jenis obat
+                                                        <strong>{{ $jenis->nama_jenis }}</strong>? Data yang sudah dihapus
+                                                        tidak dapat dikembalikan.
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary"
+                                                            data-bs-dismiss="modal">Batal</button>
+                                                        <form action="{{ route('jenis_obat.destroy', $jenis->id) }}"
+                                                            method="POST">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="btn btn-danger">Hapus</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -55,41 +84,11 @@
         </div>
     </div>
 
-    <!-- Modal Peringatan -->
-    <div class="modal fade" id="modalPeringatan" tabindex="-1" role="dialog" aria-labelledby="modalPeringatanLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalPeringatanLabel">Peringatan</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    {{ session('error') }}
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-
+    <!-- Tambahan Gaya -->
     <style>
         .card {
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             /* Kesan timbul 3D */
         }
-
-        $(document).ready(function () {
-
-                // Jika session error ada, tampilkan modal
-                @if (session('error'))
-                    $('#modalPeringatan').modal('show');
-                @endif
-            });
     </style>
 @endsection

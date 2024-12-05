@@ -6,7 +6,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
-
 class UserController extends Controller
 {
     /**
@@ -15,7 +14,7 @@ class UserController extends Controller
     public function index()
     {
         $user = User::orderBy('nama_pegawai', 'asc')
-            ->orderBy('created_at', 'desc') // Mengurutkan data berdasarkan tanggal pembuatan, yang terbaru di atas
+            ->orderBy('created_at', 'desc')
             ->get();
         return view('user.index', compact('user'));
     }
@@ -33,45 +32,39 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        // Validasi
         $request->validate([
             'nip' => 'required|string|unique:user,nip',
-            'password' => 'required|string|min:6',
+            'password' => [
+                'required',
+                'string',
+                'min:6',
+                'regex:/^(?=.*[a-zA-Z])(?=.*\d).+$/',
+            ],
+            'konfirmasi_password' => 'required|same:password',
             'level' => 'required|string|in:admin,operator',
             'nama_pegawai' => 'required|string|max:255',
             'jabatan' => 'required|string',
             'ruangan' => 'required|string',
-            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Foto (optional)
-        ], [
-            'nip.required' => 'NIP harus diisi',
-            'nip.unique' => 'NIP sudah terdaftar',
-            'password.required' => 'Password harus diisi',
-            'password.min' => 'Password minimal 6 karakter',
-            'level.required' => 'Level harus dipilih',
-            'nama_pegawai.required' => 'Nama pegawai harus diisi',
-            'jabatan.required' => 'Jabatan harus dipilih',
-            'ruangan.required' => 'Ruangan harus dipilih',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        // Jika ada file foto, simpan file dan ambil nama filenya
+        $filename = null;
         if ($request->hasFile('foto')) {
             $foto = $request->file('foto');
             $filename = 'Foto_' . uniqid() . '.' . $foto->getClientOriginalExtension();
-            $foto->storeAs('public/user', $filename); // Pastikan path ini benar
+            $foto->storeAs('public/user', $filename);
         }
 
-        // Simpan data user
         User::create([
             'nip' => $request->nip,
-            'password' => bcrypt($request->password), // Encrypt password
+            'password' => bcrypt($request->password),
             'level' => $request->level,
             'nama_pegawai' => $request->nama_pegawai,
             'jabatan' => $request->jabatan,
             'ruangan' => $request->ruangan,
-            'foto' => $filename, // Menyimpan path foto
+            'foto' => $filename,
         ]);
 
-        // Redirect dengan pesan sukses
         return redirect()->route('user.index')->with('success', 'Data berhasil disimpan.');
     }
 
@@ -98,56 +91,64 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'nip' => 'required',
+        $user = User::findOrFail($id);
+    
+        // Validasi input
+        $validated = $request->validate([
+            'nip' => 'required|unique:user,nip,' . $user->id,
             'nama_pegawai' => 'required',
             'jabatan' => 'required',
             'ruangan' => 'required',
             'level' => 'required',
-            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validasi gambar
+            // Validasi password hanya jika password baru diisi
+            'password' => 'nullable|min:6|confirmed',
+            'konfirmasi_password' => 'nullable|same:password',
         ]);
-
-        $user = User::findOrFail($id);
-
-        // Jika ada file foto baru, hapus foto lama dan simpan yang baru
-        if ($request->hasFile('foto')) {
-            if ($user->foto) {
-                Storage::delete('public/user/' . $user->foto);
-            }
-            $foto = $request->file('foto');
-            $filename = 'FTM_' . time() . '.' . $foto->getClientOriginalExtension();
-            $foto->storeAs('public/user', $filename);
-            $user->foto = $filename;
-        }
-        // Update data pengguna lainnya
+    
+        // Update data user
         $user->nip = $request->nip;
         $user->nama_pegawai = $request->nama_pegawai;
         $user->jabatan = $request->jabatan;
         $user->ruangan = $request->ruangan;
         $user->level = $request->level;
-
-        // Jika password diubah
+    
+        // Jika password diisi, update password
         if ($request->password) {
             $user->password = bcrypt($request->password);
         }
-
+    
         // Simpan perubahan
         $user->save();
-
-        return redirect()->route('user.index')->with('success', 'Pengguna berhasil diperbarui');
+    
+        return redirect()->route('user.index')->with('success', 'User berhasil diperbarui!');
     }
-
-
+    
+    
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
-        // Hapus user
-        $user = User::findOrFail($id);
-        $user->delete();
+        try {
+            $user = User::findOrFail($id);
 
-        // Redirect ke halaman index dengan pesan sukses
-        return redirect()->route('user.index')->with('success', 'User berhasil dihapus');
+            if ($user->level === 'admin') {
+                return redirect()->route('user.index')->with('error', 'User dengan level admin tidak dapat dihapus.');
+            }
+
+            if ($user->foto) {
+                Storage::delete('public/user/' . $user->foto);
+            }
+
+            $user->delete();
+
+            return redirect()->route('user.index')->with('success', 'User berhasil dihapus.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->getCode() === "23000") {
+                return redirect()->route('user.index')->with('error', 'User tidak dapat dihapus karena terkait dengan data lain.');
+            }
+
+            return redirect()->route('user.index')->with('error', 'Terjadi kesalahan saat menghapus user.');
+        }
     }
 }

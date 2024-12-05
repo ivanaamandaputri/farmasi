@@ -15,7 +15,7 @@
         <div class="card mb-4">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table id="datatablesSimple" class="table-striped table-hover table">
+                    <table id="datatablesSimple" class="table-hover table">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -48,7 +48,8 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <a href="{{ route('obat.show', $item->id) }}" class="btn btn-info">Lihat Detail</a>
+                                        <a href="{{ route('operator.showobat', $item->id) }}" class="btn btn-primary">Detail
+                                            Obat</a>
                                     </td>
                                 </tr>
                             @endforeach

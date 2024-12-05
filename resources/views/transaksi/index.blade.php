@@ -12,7 +12,7 @@
         <div class="card mb-4" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); border: none;">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table id=""" class="table">
+                    <table id="collapse-{{ $tanggal ?? 'default' }}" class="table">
                         <thead>
                             <tr>
                                 <th></th>
@@ -26,8 +26,10 @@
                                     <td>
                                         <button class="btn btn-sm btn-primary toggle-collapse" data-bs-toggle="collapse"
                                             data-bs-target="#collapse-{{ $tanggal }}">
-                                            +
+                                            <i class="bi bi-chevron-down"></i>
+                                            <!-- Ikon panah ke bawah dari Bootstrap Icons -->
                                         </button>
+
                                     </td>
                                     <td class="bg-light">{{ \Carbon\Carbon::parse($tanggal)->format('d M Y') }}</td>
                                     <td>Lihat Transaksi</td>
@@ -60,7 +62,7 @@
                                                             <td>{{ $item->obat->dosis }}</td>
                                                             <td>{{ $item->obat->jenisObat->nama_jenis }}</td>
                                                             <td>{{ number_format($item->jumlah, 0, ',', '.') }}</td>
-                                                            <td>{{ optional($item->transaksi)->acc ?? '-' }}</td>
+                                                            <td>{{ $item->acc ?? '-' }}</td>
                                                             <td>{{ number_format($item->obat->harga, 0, ',', '.') }}</td>
                                                             <td>{{ number_format($item->total, 0, ',', '.') }}</td>
                                                             <td>
@@ -181,8 +183,26 @@
         </div>
 
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script>
+            $(document).ready(function() {
+                $('.toggle-collapse').on('click', function() {
+                    const icon = $(this).find('i');
+                    icon.toggleClass('bi-chevron-down bi-chevron-up'); // Mengganti ikon saat tombol diklik
+                });
+
+                // Atur perilaku Bootstrap Collapse
+                $('.collapse').on('shown.bs.collapse', function() {
+                    $(this).closest('tr').find('.toggle-collapse i').removeClass('bi-chevron-down').addClass(
+                        'bi-chevron-up');
+                });
+
+                $('.collapse').on('hidden.bs.collapse', function() {
+                    $(this).closest('tr').find('.toggle-collapse i').removeClass('bi-chevron-up').addClass(
+                        'bi-chevron-down');
+                });
+            });
+
             // Lihat alasan penolakan
             $(document).on('click', '.view-reason-btn', function() {
                 const reason = $(this).data('reason');

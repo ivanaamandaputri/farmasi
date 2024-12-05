@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Notifikasi;
 use App\Models\Transaksi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class PengajuanController extends Controller
 {
+
     /**
      * Menampilkan semua transaksi, dikelompokkan berdasarkan tanggal.
      */
@@ -21,6 +23,8 @@ class PengajuanController extends Controller
             ->map(function ($transactions) {
                 return $transactions->groupBy('user.ruangan');
             });
+        // dd($groupedTransaksi);
+        // $notifikasi = Notifikasi::all();
 
         return view('pengajuan.index', compact('groupedTransaksi'));
     }
@@ -81,12 +85,16 @@ class PengajuanController extends Controller
             $obat->stok -= $acc;  // Mengurangi stok sesuai jumlah ACC yang disetujui
             $obat->save();
 
+            // Kirim notifikasi ke operator
+            Notifikasi::create([
+                'user_id' => $transaksi->user_id, // ID operator yang mengajukan
+                'judul' => 'Pengajuan Disetujui',
+                'pesan' => 'Pengajuan Anda telah disetujui.',
+                'level' => 'operator', // Level notifikasi
+            ]);
+
             return response()->json(['message' => 'Transaksi disetujui dan stok berkurang.'], 200);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            // Menangani error validasi
-            return response()->json(['error' => $e->errors()], 422);
         } catch (\Exception $e) {
-            // Menangani error lainnya
             return response()->json(['error' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
         }
     }
@@ -117,9 +125,45 @@ class PengajuanController extends Controller
                 'alasan_penolakan' => $request->input('reason'),
             ]);
 
+            // Kirim notifikasi ke operator
+            Notifikasi::create([
+                'user_id' => $transaksi->user_id, // ID operator yang mengajukan
+                'judul' => 'Pengajuan Ditolak',
+                'pesan' => 'Pengajuan Anda ditolak dengan alasan: ' . $reason,
+                'level' => 'operator', // Level notifikasi
+            ]);
             return response()->json(['success' => 'Transaksi berhasil ditolak.'], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Terjadi kesalahan saat memproses penolakan transaksi.'], 500);
         }
+    }
+
+    public function getNotifikasi()
+    {
+        $level = auth()->user()->level;
+
+        if ($level === 'admin') {
+            $notifikasi = Notifikasi::where('level', 'admin')
+                ->where('dibaca', false)
+                ->get();
+        } elseif ($level === 'operator') {
+            $notifikasi = Notifikasi::where('level', 'operator')
+                ->where('user_id', auth()->id())
+                ->where('dibaca', false)
+                ->get();
+        } else {
+            abort(403, 'Unauthorized access.');
+        }
+        // dd($notifikasi);
+        // Pastikan variabel notifikasi dikirim ke tampilan
+        return view('dashboard', compact('notifikasi'));
+    }
+
+    public function bacaNotifikasi($id)
+    {
+        $notifikasi = Notifikasi::findOrFail($id);
+        $notifikasi->update(['dibaca' => true]);
+
+        return redirect()->back();
     }
 }

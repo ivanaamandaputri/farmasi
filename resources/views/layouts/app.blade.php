@@ -20,8 +20,8 @@
     <script src="https://cdn.ckeditor.com/4.16.0/standard/ckeditor.js"></script>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/rowgroup/1.3.1/css/rowGroup.dataTables.min.css">
-
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .custom-card {
             background-color: #f8f9fa;
@@ -49,6 +49,10 @@
         <ul class="navbar-nav ms-auto">
             <ul class="navbar-nav ms-md-0 me-lg-4 me-3 ms-auto">
                 <li class="nav-item dropdown d-flex align-items-center"> <!-- Menggunakan Flexbox untuk penyusunan -->
+                    <!-- Lonceng Notifikasi -->
+                    <a href="{{ route('dashboard.notifikasi') }}" class="nav-link d-flex align-items-center ms-3">
+                        <i class="fas fa-bell" style="font-size: 20px;"></i> <!-- Ikon lonceng -->
+                    </a>
                     <!-- Foto Profil -->
                     <a class="nav-link dropdown-toggle d-flex align-items-center" id="navbarDropdown" href="#"
                         role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -74,22 +78,18 @@
                     </a>
                     <!-- Dropdown -->
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                        <li><a class="dropdown-item" href="#!">Profil</a></li>
+                        @if (Auth::user()->level == 'operator')
+                            <!-- Pastikan ini sesuai dengan nama role pada aplikasi Anda -->
+                            <li><a class="dropdown-item"
+                                    href="{{ route('profile.index', Auth::user()->id) }}">Profil</a></li>
+                        @endif
                         <li>
-                            <a class="dropdown-item" href="#"
-                                onclick="event.preventDefault(); if(confirm('Apakah Anda yakin ingin keluar?')) { document.getElementById('logout-form').submit(); }">
+                            <a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                data-bs-target="#logoutModal">
                                 Keluar
                             </a>
                         </li>
                     </ul>
-                </li>
-            </ul>
-        </ul>
-        <!-- Form Logout -->
-        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-            @csrf
-        </form>
-
     </nav>
     <div id="layoutSidenav">
         <div id="layoutSidenav_nav">
@@ -146,40 +146,24 @@
 
                                 </nav>
                             </div>
-                            <a class="nav-link collapsed" href="#" data-bs-toggle="collapse"
-                                data-bs-target="#collapseTransaksi" aria-expanded="false"
-                                aria-controls="collapseTransaksi">
-                                <div class="sb-nav-link-icon"><i class="fas fa-exchange-alt"></i></div>
-                                Transaksi
-                                <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                            <a class="nav-link {{ request()->is('pengajuan') ? 'active' : '' }}"
+                                href="{{ route('pengajuan.order') }}">
+                                <div class="sb-nav-link-icon"><i class="fas fa-shopping-cart"></i></div>
+                                Permintaan
                             </a>
-                            <div class="collapse" id="collapseTransaksi" aria-labelledby="headingTransaksi"
-                                data-bs-parent="#sidenavAccordion">
-                                <nav class="sb-sidenav-menu-nested nav">
-                                    <a class="nav-link {{ request()->is('pengajuan') ? 'active' : '' }}"
-                                        href="{{ route('pengajuan.order') }}">
-                                        <div class="sb-nav-link-icon"><i class="fas fa-shopping-cart"></i></div>
-                                        Permintaan
-                                    </a>
-                                    <a class="nav-link {{ request()->is('pembelian') ? 'active' : '' }}"
-                                        href=" ">
-                                        <div class="sb-nav-link-icon"><i class="fa fa-cart-plus"></i></div>
-                                        Stok Obat
-                                    </a>
-                                    <a class="nav-link {{ request()->is('retur') ? 'active' : '' }}" href="  ">
-                                        <div class="sb-nav-link-icon"><i class="fa fa-undo"></i></div>
-                                        Retur
-                                    </a>
-                                </nav>
-                            </div>
-
-
+                            <a class="nav-link {{ request()->is('pembelian') ? 'active' : '' }}" href=" ">
+                                <div class="sb-nav-link-icon"><i class="fa fa-cart-plus"></i></div>
+                                Stok Obat
+                            </a>
+                            <a class="nav-link {{ request()->is('retur') ? 'active' : '' }}" href=" ">
+                                <div class="sb-nav-link-icon"><i class="fa fa-undo"></i></div>
+                                Retur
+                            </a>
                             <a class="nav-link {{ request()->is('laporan') ? 'active' : '' }}" href="/laporan">
                                 <div class="sb-nav-link-icon"><i class="fas fa-print"></i></div>
                                 Laporan
                             </a>
-                            <a class="nav-link" href="#"
-                                onclick="event.preventDefault(); if(confirm('Apakah Anda yakin ingin keluar?')) { document.getElementById('logout-form').submit(); }">
+                            <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
                                 <div class="sb-nav-link-icon"><i class="fas fa-sign-out-alt"></i></div>
                                 Keluar
                             </a>
@@ -202,8 +186,7 @@
                         <div class="sb-nav-link-icon"><i class="fas fa-shopping-cart"></i></div>
                         Order Obat
                     </a>
-                    <a class="nav-link" href="#"
-                        onclick="event.preventDefault(); if(confirm('Apakah Anda yakin ingin keluar?')) { document.getElementById('logout-form').submit(); }">
+                    <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
                         <div class="sb-nav-link-icon"><i class="fas fa-sign-out-alt"></i></div>
                         Keluar
                     </a>
@@ -232,6 +215,30 @@
             </footer>
         </div>
     </div>
+
+    <!-- Logout Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="logoutModalLabel">Konfirmasi Keluar</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Apakah Anda yakin ingin keluar?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                        @csrf
+                    </form>
+                    <button type="button" class="btn btn-primary"
+                        onclick="document.getElementById('logout-form').submit();">Keluar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             let alert = document.querySelector('.alert');

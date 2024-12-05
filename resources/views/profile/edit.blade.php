@@ -4,20 +4,10 @@
     <div class="container py-3">
         <div class="card">
             <div class="card-header">
-                <h4>Edit User</h4>
+                <h4>Edit Profil</h4>
             </div>
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
             <div class="card-body">
-                <form action="{{ route('user.update', $user->id) }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('profile.update', $user->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     <div class="row">
@@ -46,11 +36,17 @@
                                 <label for="nip">NIP</label>
                                 <input type="text" name="nip" class="form-control" value="{{ $user->nip }}"
                                     required>
+                                @error('nip')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
                             </div>
                             <div class="form-group">
                                 <label for="nama_pegawai">Nama Pegawai</label>
                                 <input type="text" name="nama_pegawai" class="form-control"
                                     value="{{ $user->nama_pegawai }}" required>
+                                @error('nama_pegawai')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
                             </div>
                             <div class="form-group">
                                 <label for="jabatan">Jabatan</label>
@@ -61,6 +57,9 @@
                                     </option>
                                     <option value="Staf" {{ $user->jabatan == 'Staf' ? 'selected' : '' }}>Staf</option>
                                 </select>
+                                @error('jabatan')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
                             </div>
                             <div class="form-group">
                                 <label for="ruangan">Ruangan</label>
@@ -93,39 +92,43 @@
                                         {{ $user->ruangan == 'puskesmas Bandung' ? 'selected' : '' }}>Puskesmas Bandung
                                     </option>
                                 </select>
+                                @error('ruangan')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
                             </div>
+
+                            <!-- Input untuk Password Lama -->
                             <div class="form-group">
-                                <label for="level">Level</label>
-                                <select name="level" class="form-control" required>
-                                    <option value="admin" {{ $user->level == 'admin' ? 'selected' : '' }}>Admin</option>
-                                    <option value="operator" {{ $user->level == 'operator' ? 'selected' : '' }}>Operator
-                                    </option>
-                                </select>
+                                <label for="old_password">Password Lama</label>
+                                <input type="password" id="old_password" name="old_password" class="form-control"
+                                    placeholder="Kosongkan jika tidak ingin mengganti password">
+                                @error('old_password')
+                                    <div class="alert alert-danger mt-2">{{ $message }}</div>
+                                @enderror
                             </div>
+
                             <!-- Input untuk Password Baru -->
                             <div class="form-group">
-                                <label for="password">Password Baru</label>
-                                <input type="password" id="password" name="password" class="form-control"
+                                <label for="new_password">Password Baru</label>
+                                <input type="password" id="new_password" name="new_password" class="form-control"
                                     placeholder="Minimal 6 karakter, huruf dan angka">
-                                @error('password')
+                                @error('new_password')
                                     <div class="alert alert-danger mt-2">{{ $message }}</div>
                                 @enderror
                             </div>
 
                             <!-- Input untuk Konfirmasi Password Baru -->
                             <div class="form-group">
-                                <label for="password_confirmation">Konfirmasi Password</label>
-                                <input type="password" id="password_confirmation" name="password_confirmation"
+                                <label for="new_password_confirmation">Konfirmasi Password</label>
+                                <input type="password" id="new_password_confirmation" name="new_password_confirmation"
                                     class="form-control" placeholder="Konfirmasi password baru">
-                                @error('password_confirmation')
+                                @error('new_password_confirmation')
                                     <div class="alert alert-danger mt-2">{{ $message }}</div>
                                 @enderror
                             </div>
-
-
                             <br>
                             <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                            <a href="{{ route('user.index') }}" class="btn btn-secondary">Batal</a>
+                            <a href="{{ route('profile.index') }}" class="btn btn-secondary">Batal</a>
                         </div>
                     </div>
                 </form>
@@ -134,16 +137,11 @@
     </div>
 
     <style>
-        /* Mengatur ukuran lingkaran dan memastikan gambar tidak peyang */
         .custom-photo {
             width: 200px;
-            /* Ukuran lingkaran lebih besar */
             height: 200px;
-            /* Ukuran lingkaran lebih besar */
             object-fit: cover;
-            /* Gambar akan menyesuaikan dengan frame */
             border-radius: 15px;
-            /* Membuat gambar menjadi persegi tumpul */
         }
     </style>
 

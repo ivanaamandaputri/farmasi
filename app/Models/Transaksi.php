@@ -4,12 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class Transaksi extends Model
 {
     use HasFactory;
 
     protected $table = 'transaksi';
+    // Pastikan kolom 'tanggal' diperlakukan sebagai objek Carbon
+    protected $dates = ['tanggal'];
 
     protected $fillable = [
         'obat_id',
@@ -20,6 +23,9 @@ class Transaksi extends Model
         'alasan_penolakan',
         'tanggal',
         'acc'
+    ];
+    protected $casts = [
+        'tanggal' => 'datetime', // Mengubah 'tanggal' menjadi objek Carbon
     ];
 
     public function obat()

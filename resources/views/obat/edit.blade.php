@@ -6,6 +6,15 @@
             <div class="card-header">
                 <h4>Edit Obat</h4>
             </div>
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
             <div class="card-body">
                 <form action="{{ route('obat.update', $obat->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
@@ -66,8 +75,9 @@
                                 <label for="stok">Stok</label>
                                 <input type="number" name="stok" class="form-control"
                                     placeholder="Masukkan jumlah stok obat ini (contoh: 1000)"
-                                    value="{{ old('stok', $obat->stok) }}" required>
+                                    value="{{ old('stok', $obat->stok) }}" readonly>
                             </div>
+
                             <div class="form-group">
                                 <label for="exp">Tanggal Kadaluwarsa</label>
                                 <input type="date" name="exp" class="form-control"
